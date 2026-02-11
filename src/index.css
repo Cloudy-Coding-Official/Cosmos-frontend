@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cosmos-bg: #0a0a0b;
+  --color-cosmos-surface: #141416;
+  --color-cosmos-surface-elevated: #1c1c1f;
+  --color-cosmos-surface-hover: #1f1f23;
+
+  --color-cosmos-text: #fafafa;
+  --color-cosmos-muted: #a1a1aa;
+
+  --color-cosmos-accent: #8b5cf6;
+  --color-cosmos-accent-hover: #a78bfa;
+  --color-cosmos-accent-soft: rgba(139, 92, 246, 0.15);
+
+  --color-cosmos-border: #27272a;
+  --color-cosmos-border-strong: #3f3f46;
+
+  --font-display: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+
+  --radius-card: 1rem;
+  --radius-button: 0.5rem;
+  --radius-input: 0.5rem;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply font-sans text-cosmos-text bg-cosmos-bg antialiased;
+  }
+  #root {
+    @apply min-h-screen flex flex-col;
+  }
+  a:hover {
+    @apply text-cosmos-accent;
+  }
+}
