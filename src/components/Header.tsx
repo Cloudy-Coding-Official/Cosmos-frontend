@@ -22,7 +22,8 @@ export function Header() {
             Comprar
           </Link>
           <Link to="/vender" className="px-3 py-2 text-[0.9375rem] font-medium text-cosmos-muted hover:text-cosmos-text hover:bg-cosmos-surface-elevated rounded-lg transition-colors">Vender</Link>
-          <Link to="/proveedores" className="px-3 py-2 text-[0.9375rem] font-medium text-cosmos-muted hover:text-cosmos-text hover:bg-cosmos-surface-elevated rounded-lg transition-colors">Proveedores</Link>
+          <Link to="/proveedores" className={`px-3 py-2 text-[0.9375rem] font-medium rounded-lg transition-colors ${location.pathname.startsWith("/proveedores") ? "text-cosmos-text bg-cosmos-surface-elevated" : "text-cosmos-muted hover:text-cosmos-text hover:bg-cosmos-surface-elevated"}`}>Proveedores</Link>
+          <Link to="/cosmos-pay" className="px-3 py-2 text-[0.9375rem] font-medium text-cosmos-muted hover:text-cosmos-text hover:bg-cosmos-surface-elevated rounded-lg transition-colors">Cosmos Pay</Link>
           <Link to="/como-funciona" className="px-3 py-2 text-[0.9375rem] font-medium text-cosmos-muted hover:text-cosmos-text hover:bg-cosmos-surface-elevated rounded-lg transition-colors">Cómo funciona</Link>
         </nav>
 
@@ -56,6 +57,7 @@ export function Header() {
           <Link to="/tienda" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated">Comprar</Link>
           <Link to="/vender" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated">Vender</Link>
           <Link to="/proveedores" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated">Proveedores</Link>
+          <Link to="/cosmos-pay" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated">Cosmos Pay</Link>
           <Link to="/como-funciona" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated">Cómo funciona</Link>
           <Link to="/carrito" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated">Carrito</Link>
           <Link to="/perfil" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated">Perfil</Link>

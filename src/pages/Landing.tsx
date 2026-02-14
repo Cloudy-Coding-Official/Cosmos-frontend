@@ -1,95 +1,272 @@
 import { Link } from "react-router-dom";
-import { Wrench, Building2, Wallet, ArrowRight, Shield, Zap, Globe } from "lucide-react";
+import {
+  Wrench,
+  Building2,
+  Wallet,
+  ArrowRight,
+  Shield,
+  Zap,
+  Globe,
+  CreditCard,
+  TrendingUp,
+  Sparkles,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  Leaf,
+  ChevronRight,
+} from "lucide-react";
 
 export function Landing() {
   return (
-    <div>
-      <section className="relative pt-20 pb-16 bg-cosmos-bg overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[140%] h-[70%] bg-[radial-gradient(ellipse_at_center,var(--color-cosmos-accent-soft)_0%,transparent_60%)] pointer-events-none" />
-        <div className="relative w-full max-w-[1200px] mx-auto px-6 text-center max-w-[720px]">
-          <h1 className="font-display font-medium leading-tight text-cosmos-text text-[clamp(2rem,5vw,3.25rem)] m-0 mb-6">
-            Donde todos tienen igualdad de oportunidades
+    <div className="overflow-hidden">
+      {/* Hero — más impactante */}
+      <section className="relative min-h-[85vh] flex items-center pt-24 pb-20 bg-cosmos-bg overflow-hidden">
+        {/* Fondos decorativos */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(139,92,246,0.25)_0%,transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_80%_100%,rgba(139,92,246,0.1)_0%,transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_60%_at_10%_90%,rgba(167,139,250,0.08)_0%,transparent_50%)]" />
+        <div className="absolute top-20 left-[10%] w-72 h-72 rounded-full bg-cosmos-accent/5 blur-3xl animate-glow" />
+        <div className="absolute bottom-20 right-[15%] w-96 h-96 rounded-full bg-cosmos-accent/5 blur-3xl animate-glow" style={{ animationDelay: "1.5s" }} />
+
+        <div className="relative w-full max-w-[1200px] mx-auto px-6 text-center">
+          <span className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-cosmos-accent bg-cosmos-accent-soft border border-cosmos-accent/30 rounded-full">
+            <Sparkles size={16} className="animate-float" />
+            Igualdad de oportunidades en Latinoamérica
+          </span>
+          <h1 className="font-display font-semibold leading-[1.1] text-cosmos-text text-[clamp(2.5rem,6vw,4rem)] m-0 mb-6 tracking-tight">
+            Donde todos tienen
+            <br />
+            <span className="bg-gradient-to-r from-cosmos-accent via-violet-400 to-cosmos-accent bg-clip-text text-transparent">
+              igualdad de oportunidades
+            </span>
           </h1>
-          <p className="text-lg text-cosmos-muted leading-relaxed m-0 mb-8">
+          <p className="text-lg md:text-xl text-cosmos-muted leading-relaxed max-w-[640px] mx-auto m-0 mb-10">
             Cosmos democratiza la compra, venta y producción de bienes y servicios.
             Opera como vendedor sin necesidad de capital, conecta con productores
             regionales e internacionales y protege cada transacción de punta a punta.
           </p>
-          <div className="flex flex-wrap gap-4 justify-center mb-6">
+          <div className="flex flex-wrap gap-4 justify-center mb-8">
             <Link
               to="/registro"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 font-medium bg-cosmos-accent text-cosmos-bg border-0 rounded-lg hover:bg-cosmos-accent-hover transition-all shadow-lg hover:shadow-xl"
+              className="group inline-flex items-center justify-center gap-2 px-8 py-4 font-semibold bg-cosmos-accent text-cosmos-bg border-0 rounded-xl hover:bg-cosmos-accent-hover transition-all shadow-lg shadow-cosmos-accent/25 hover:shadow-xl hover:shadow-cosmos-accent/30 hover:scale-[1.02]"
             >
               Empezar a vender
-              <ArrowRight size={18} />
+              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
               to="/tienda"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 font-medium bg-transparent text-cosmos-text border border-cosmos-border hover:border-cosmos-accent hover:text-cosmos-accent rounded-lg transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 font-semibold bg-cosmos-surface-elevated/80 text-cosmos-text border border-cosmos-border rounded-xl hover:border-cosmos-accent hover:text-cosmos-accent hover:bg-cosmos-surface transition-all backdrop-blur-sm"
             >
               Explorar productos
             </Link>
           </div>
-          <p className="text-sm text-cosmos-muted m-0">Solo 1% + US$ 0,10 por transacción. Protección estándar incluida.</p>
-        </div>
-        <div className="pt-10 pb-10 mt-10 border-t border-cosmos-border">
-          <div className="w-full max-w-[1200px] mx-auto px-6">
-            <p className="text-xs font-medium uppercase tracking-wider text-cosmos-muted text-center block mb-4">Conectando productores y vendedores en Latinoamérica</p>
-            <div className="flex flex-wrap justify-center items-center gap-4">
-              {["Productor A", "Productor B", "Importador C", "Retail D", "Marca E"].map((name) => (
-                <span key={name} className="text-sm text-cosmos-muted px-4 py-2.5 bg-cosmos-surface border border-cosmos-border rounded-lg">{name}</span>
+          <p className="text-sm text-cosmos-muted">
+            Solo 1% + US$ 0,10 por transacción · Protección estándar incluida
+          </p>
+
+          {/* Trust badges */}
+          <div className="mt-16 pt-12 border-t border-cosmos-border/60">
+            <p className="text-xs font-medium uppercase tracking-wider text-cosmos-muted mb-6">
+              Conectando productores y vendedores en Latinoamérica
+            </p>
+            <div className="flex flex-wrap justify-center items-center gap-3">
+              {["Productor A", "Productor B", "Importador C", "Retail D", "Marca E"].map((name, i) => (
+                <span
+                  key={name}
+                  className="text-sm text-cosmos-muted px-5 py-2.5 bg-cosmos-surface/80 border border-cosmos-border rounded-xl hover:border-cosmos-accent/50 hover:text-cosmos-text transition-colors"
+                  style={{ animationDelay: `${i * 0.1}s` }}
+                >
+                  {name}
+                </span>
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="py-20 bg-cosmos-surface/50 border-y border-cosmos-border">
-        <div className="w-full max-w-[1200px] mx-auto px-6 pt-4 pb-4">
-          <div className="grid gap-6 md:grid-cols-3">
-            <article className="flex flex-col h-full p-8 bg-cosmos-surface border border-cosmos-border rounded-xl text-cosmos-text transition-all hover:-translate-y-1 hover:border-cosmos-border-strong hover:shadow-xl hover:shadow-black/20">
-              <div className="w-12 h-12 rounded-xl bg-cosmos-accent-soft flex items-center justify-center mb-5">
-                <Wrench className="text-cosmos-accent" size={24} />
+      {/* Cosmos Pay — Pasarela On/Off Ramp */}
+      <section className="py-24 bg-gradient-to-b from-cosmos-surface/50 via-cosmos-bg to-cosmos-bg border-y border-cosmos-border">
+        <div className="w-full max-w-[1200px] mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 mb-4 text-xs font-semibold uppercase tracking-wider text-cosmos-accent bg-cosmos-accent-soft rounded-lg">
+                <CreditCard size={14} />
+                Cosmos Pay
+              </span>
+              <h2 className="font-display font-semibold text-cosmos-text text-[clamp(1.75rem,4vw,2.5rem)] m-0 mb-4 leading-tight">
+                Tu pasarela de pagos
+                <br />
+                <span className="text-cosmos-muted font-normal">On Ramp · Off Ramp</span>
+              </h2>
+              <p className="text-cosmos-muted leading-relaxed mb-6">
+                Convierte moneda local a cripto y viceversa de forma segura. Paga y cobra en USDT,
+                recibe en tu cuenta bancaria. Todo integrado en un solo flujo, con protección
+                Cosmos en cada transacción.
+              </p>
+              <ul className="space-y-3 mb-8">
+                {[
+                  "Depósitos y retiros en moneda local",
+                  "Conversión automática USDT ↔ USD/Local",
+                  "Tarifas transparentes · Sin sorpresas",
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-3 text-cosmos-text">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cosmos-accent shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                to="/cosmos-pay"
+                className="inline-flex items-center gap-2 px-6 py-3.5 font-semibold bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover transition-all"
+              >
+                Conocer Cosmos Pay
+                <ChevronRight size={18} />
+              </Link>
+            </div>
+            <div className="relative">
+              <div className="p-8 bg-cosmos-surface border border-cosmos-border rounded-2xl shadow-xl">
+                <div className="flex gap-4 mb-6">
+                  <div className="flex-1 p-4 bg-cosmos-bg rounded-xl border border-cosmos-border">
+                    <div className="flex items-center gap-2 text-cosmos-muted text-sm mb-2">
+                      <ArrowDownToLine size={16} />
+                      On Ramp
+                    </div>
+                    <p className="text-lg font-semibold text-cosmos-text">Local → USDT</p>
+                    <p className="text-xs text-cosmos-muted mt-1">Depósito desde tu banco</p>
+                  </div>
+                  <div className="flex-1 p-4 bg-cosmos-bg rounded-xl border border-cosmos-border">
+                    <div className="flex items-center gap-2 text-cosmos-muted text-sm mb-2">
+                      <ArrowUpFromLine size={16} />
+                      Off Ramp
+                    </div>
+                    <p className="text-lg font-semibold text-cosmos-text">USDT → Local</p>
+                    <p className="text-xs text-cosmos-muted mt-1">Retiro a tu cuenta</p>
+                  </div>
+                </div>
+                <div className="h-px bg-cosmos-border my-4" />
+                <div className="text-center py-4">
+                  <p className="text-sm text-cosmos-muted">Tarifa estándar</p>
+                  <p className="text-2xl font-bold text-cosmos-accent">1% + US$ 0,10</p>
+                  <p className="text-xs text-cosmos-muted mt-1">Protección al comprador incluida</p>
+                </div>
               </div>
-              <h3 className="font-display text-xl m-0 mb-3">Para vendedores</h3>
-              <p className="text-[0.9375rem] text-cosmos-muted flex-1 m-0 mb-6 leading-relaxed">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Cosmos Founding — Financiamiento LATAM */}
+      <section className="py-24 bg-cosmos-bg">
+        <div className="w-full max-w-[1200px] mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="order-2 lg:order-1">
+              <div className="relative p-8 bg-gradient-to-br from-cosmos-surface to-cosmos-surface-elevated border border-cosmos-accent/20 rounded-2xl">
+                <div className="absolute -top-3 -right-3 w-24 h-24 rounded-full bg-cosmos-accent/10 blur-2xl" />
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-14 h-14 rounded-xl bg-cosmos-accent-soft flex items-center justify-center">
+                    <Leaf className="text-cosmos-accent" size={28} />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-semibold text-cosmos-text text-xl m-0">Cosmos Founding</h3>
+                    <p className="text-sm text-cosmos-muted m-0">Financia tu próximo paso</p>
+                  </div>
+                </div>
+                <p className="text-cosmos-muted leading-relaxed mb-6">
+                  Apoya proyectos emprendedores en América Latina. Invierte en iniciativas verificadas,
+                  recibe retornos y contribuye al ecosistema regional.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {["Proyectos verificados", "Retornos transparentes", "LATAM first"].map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-3 py-1.5 text-xs font-medium bg-cosmos-surface rounded-lg text-cosmos-text border border-cosmos-border"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="order-1 lg:order-2">
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 mb-4 text-xs font-semibold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+                <TrendingUp size={14} />
+                Cosmos Founding
+              </span>
+              <h2 className="font-display font-semibold text-cosmos-text text-[clamp(1.75rem,4vw,2.5rem)] m-0 mb-4 leading-tight">
+                Financia proyectos
+                <br />
+                en América Latina
+              </h2>
+              <p className="text-cosmos-muted leading-relaxed mb-6">
+                Cosmos Founding conecta emprendedores con inversionistas. Proyectos de retail,
+                producción y logística validados por la comunidad. Invierte en lo que conoces
+                y genera impacto real en la región.
+              </p>
+              <Link
+                to="/cosmos-founding"
+                className="inline-flex items-center gap-2 px-6 py-3.5 font-semibold bg-emerald-600 text-white rounded-xl hover:bg-emerald-500 transition-all border border-emerald-500/30"
+              >
+                Explorar proyectos
+                <ChevronRight size={18} />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Para quién es Cosmos */}
+      <section className="py-24 bg-cosmos-surface/50 border-y border-cosmos-border">
+        <div className="w-full max-w-[1200px] mx-auto px-6 pt-4 pb-4">
+          <span className="block mb-2 text-xs font-semibold uppercase tracking-wider text-cosmos-accent">
+            Para cada actor
+          </span>
+          <h2 className="font-display font-semibold text-cosmos-text text-[clamp(1.75rem,4vw,2.5rem)] m-0 mb-12">
+            Una plataforma, múltiples oportunidades
+          </h2>
+          <div className="grid gap-8 md:grid-cols-3">
+            <article className="group flex flex-col h-full p-8 bg-cosmos-surface border border-cosmos-border rounded-2xl text-cosmos-text transition-all hover:-translate-y-2 hover:border-cosmos-accent/40 hover:shadow-xl hover:shadow-cosmos-accent/5">
+              <div className="w-14 h-14 rounded-xl bg-cosmos-accent-soft flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Wrench className="text-cosmos-accent" size={28} />
+              </div>
+              <h3 className="font-display text-xl font-semibold m-0 mb-3">Para vendedores</h3>
+              <p className="text-cosmos-muted flex-1 m-0 mb-6 leading-relaxed">
                 Vende sin invertir en stock. Conecta con proveedores y productores, elige productos y llega a tus clientes con la garantía de Cosmos.
               </p>
               <Link
                 to="/registro"
-                className="self-start inline-flex items-center gap-2 px-5 py-2.5 font-medium bg-transparent text-cosmos-text border border-cosmos-border rounded-lg hover:border-cosmos-accent hover:text-cosmos-accent transition-colors"
+                className="self-start inline-flex items-center gap-2 px-5 py-2.5 font-medium text-cosmos-accent hover:text-cosmos-accent-hover transition-colors"
               >
                 Empezar a vender
                 <ArrowRight size={16} />
               </Link>
             </article>
-            <article className="flex flex-col h-full p-8 bg-cosmos-surface border border-cosmos-border rounded-xl text-cosmos-text transition-all hover:-translate-y-1 hover:border-cosmos-border-strong hover:shadow-xl hover:shadow-black/20">
-              <div className="w-12 h-12 rounded-xl bg-cosmos-accent-soft flex items-center justify-center mb-5">
-                <Building2 className="text-cosmos-accent" size={24} />
+            <article className="group flex flex-col h-full p-8 bg-cosmos-surface border border-cosmos-border rounded-2xl text-cosmos-text transition-all hover:-translate-y-2 hover:border-cosmos-accent/40 hover:shadow-xl hover:shadow-cosmos-accent/5">
+              <div className="w-14 h-14 rounded-xl bg-cosmos-accent-soft flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Building2 className="text-cosmos-accent" size={28} />
               </div>
-              <h3 className="font-display text-xl m-0 mb-3">Para productores e importadores</h3>
-              <p className="text-[0.9375rem] text-cosmos-muted flex-1 m-0 mb-6 leading-relaxed">
+              <h3 className="font-display text-xl font-semibold m-0 mb-3">Para productores e importadores</h3>
+              <p className="text-cosmos-muted flex-1 m-0 mb-6 leading-relaxed">
                 Llega a más actores en el mercado y moviliza tus ventas más rápido. Precios y condiciones para retailers. Un solo flujo protegido.
               </p>
               <Link
                 to="/proveedores"
-                className="self-start inline-flex items-center gap-2 px-5 py-2.5 font-medium bg-transparent text-cosmos-text border border-cosmos-border rounded-lg hover:border-cosmos-accent hover:text-cosmos-accent transition-colors"
+                className="self-start inline-flex items-center gap-2 px-5 py-2.5 font-medium text-cosmos-accent hover:text-cosmos-accent-hover transition-colors"
               >
                 Ver soluciones
                 <ArrowRight size={16} />
               </Link>
             </article>
-            <article className="flex flex-col h-full p-8 bg-cosmos-surface border border-cosmos-border rounded-xl text-cosmos-text transition-all hover:-translate-y-1 hover:border-cosmos-border-strong hover:shadow-xl hover:shadow-black/20">
-              <div className="w-12 h-12 rounded-xl bg-cosmos-accent-soft flex items-center justify-center mb-5">
-                <Wallet className="text-cosmos-accent" size={24} />
+            <article className="group flex flex-col h-full p-8 bg-cosmos-surface border border-cosmos-border rounded-2xl text-cosmos-text transition-all hover:-translate-y-2 hover:border-cosmos-accent/40 hover:shadow-xl hover:shadow-cosmos-accent/5">
+              <div className="w-14 h-14 rounded-xl bg-cosmos-accent-soft flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Wallet className="text-cosmos-accent" size={28} />
               </div>
-              <h3 className="font-display text-xl m-0 mb-3">Para compradores</h3>
-              <p className="text-[0.9375rem] text-cosmos-muted flex-1 m-0 mb-6 leading-relaxed">
+              <h3 className="font-display text-xl font-semibold m-0 mb-3">Para compradores</h3>
+              <p className="text-cosmos-muted flex-1 m-0 mb-6 leading-relaxed">
                 Compra con confianza. Tus fondos están asegurados y el producto llega a tus manos con garantía de entrega.
               </p>
               <Link
                 to="/tienda"
-                className="self-start inline-flex items-center gap-2 px-5 py-2.5 font-medium bg-transparent text-cosmos-text border border-cosmos-border rounded-lg hover:border-cosmos-accent hover:text-cosmos-accent transition-colors"
+                className="self-start inline-flex items-center gap-2 px-5 py-2.5 font-medium text-cosmos-accent hover:text-cosmos-accent-hover transition-colors"
               >
                 Comprar ahora
                 <ArrowRight size={16} />
@@ -99,40 +276,46 @@ export function Landing() {
         </div>
       </section>
 
-      <section className="py-20 bg-cosmos-bg">
+      {/* Protección */}
+      <section className="py-24 bg-cosmos-bg">
         <div className="w-full max-w-[1200px] mx-auto px-6">
-          <span className="block mb-2 text-xs font-medium uppercase tracking-wider text-cosmos-accent">Protección</span>
-          <h2 className="font-display font-medium text-cosmos-text text-[clamp(1.75rem,4vw,2.5rem)] m-0 mb-4">Protección de punta a punta</h2>
-          <p className="text-[1.0625rem] text-cosmos-muted max-w-[640px] m-0 mb-10 leading-relaxed">
-            Cosmos es el intermediario que asegura que todas las operaciones finalicen de forma exitosa: fondos del comprador, entrega al cliente y pagos a vendedores y proveedores.
+          <span className="block mb-2 text-xs font-semibold uppercase tracking-wider text-cosmos-accent">
+            Protección
+          </span>
+          <h2 className="font-display font-semibold text-cosmos-text text-[clamp(1.75rem,4vw,2.5rem)] m-0 mb-4">
+            Protección de punta a punta
+          </h2>
+          <p className="text-cosmos-muted max-w-[640px] m-0 mb-12 leading-relaxed">
+            Cosmos es el intermediario que asegura que todas las operaciones finalicen de forma exitosa:
+            fondos del comprador, entrega al cliente y pagos a vendedores y proveedores.
           </p>
-          <div className="grid grid-cols-1 gap-4 mb-10 sm:grid-cols-3">
-            <div className="flex flex-col gap-2 p-6 bg-cosmos-surface border border-cosmos-border rounded-xl">
-              <div className="w-10 h-10 rounded-lg bg-cosmos-accent-soft flex items-center justify-center">
-                <Shield size={20} className="text-cosmos-accent" />
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 mb-12">
+            <div className="flex flex-col gap-4 p-8 bg-cosmos-surface border border-cosmos-border rounded-2xl hover:border-cosmos-accent/30 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-cosmos-accent-soft flex items-center justify-center">
+                <Shield size={24} className="text-cosmos-accent" />
               </div>
-              <span className="font-semibold text-base text-cosmos-text">Fondos asegurados</span>
-              <span className="text-sm text-cosmos-muted">Sabemos que el dinero existe</span>
+              <span className="font-semibold text-lg text-cosmos-text">Fondos asegurados</span>
+              <span className="text-cosmos-muted">Sabemos que el dinero existe</span>
             </div>
-            <div className="flex flex-col gap-2 p-6 bg-cosmos-surface border border-cosmos-border rounded-xl">
-              <div className="w-10 h-10 rounded-lg bg-cosmos-accent-soft flex items-center justify-center">
-                <Zap size={20} className="text-cosmos-accent" />
+            <div className="flex flex-col gap-4 p-8 bg-cosmos-surface border border-cosmos-border rounded-2xl hover:border-cosmos-accent/30 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-cosmos-accent-soft flex items-center justify-center">
+                <Zap size={24} className="text-cosmos-accent" />
               </div>
-              <span className="font-semibold text-base text-cosmos-text">Entrega garantizada</span>
-              <span className="text-sm text-cosmos-muted">El producto llega a tus manos</span>
+              <span className="font-semibold text-lg text-cosmos-text">Entrega garantizada</span>
+              <span className="text-cosmos-muted">El producto llega a tus manos</span>
             </div>
-            <div className="flex flex-col gap-2 p-6 bg-cosmos-surface-elevated border border-cosmos-accent/30 rounded-xl ">
-              <div className="w-10 h-10 rounded-lg bg-cosmos-accent-soft flex items-center justify-center">
-                <Globe size={20} className="text-cosmos-accent" />
+            <div className="flex flex-col gap-4 p-8 bg-cosmos-surface-elevated border border-cosmos-accent/30 rounded-2xl">
+              <div className="w-12 h-12 rounded-xl bg-cosmos-accent-soft flex items-center justify-center">
+                <Globe size={24} className="text-cosmos-accent" />
               </div>
-              <span className="font-semibold text-base text-cosmos-text">Un solo flujo</span>
-              <span className="text-sm text-cosmos-muted">Protección para todos los actores</span>
+              <span className="font-semibold text-lg text-cosmos-text">Un solo flujo</span>
+              <span className="text-cosmos-muted">Protección para todos los actores</span>
             </div>
           </div>
           <div className="text-center">
             <Link
               to="/como-funciona"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 font-medium bg-cosmos-accent text-cosmos-bg border-0 rounded-lg hover:bg-cosmos-accent-hover transition-all shadow-lg"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 font-semibold bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover transition-all shadow-lg"
             >
               Cómo funciona
               <ArrowRight size={18} />
@@ -141,20 +324,25 @@ export function Landing() {
         </div>
       </section>
 
-      <section className="py-20 bg-cosmos-surface border-t border-cosmos-border">
-        <div className="w-full max-w-[1200px] mx-auto px-6 text-center max-w-[560px]">
-          <h2 className="font-display text-cosmos-text text-[clamp(1.5rem,3vw,2rem)] m-0 mb-3">Listo para democratizar tu negocio</h2>
-          <p className="text-cosmos-muted m-0 mb-6 leading-relaxed">Únete a Cosmos y opera con igualdad de oportunidades. Sin monopolios, sin barreras de capital.</p>
+      {/* CTA final */}
+      <section className="py-24 bg-gradient-to-b from-cosmos-surface to-cosmos-bg border-t border-cosmos-border">
+        <div className="w-full max-w-[720px] mx-auto px-6 text-center">
+          <h2 className="font-display font-semibold text-cosmos-text text-[clamp(1.5rem,3vw,2.25rem)] m-0 mb-4">
+            Listo para democratizar tu negocio
+          </h2>
+          <p className="text-cosmos-muted m-0 mb-8 leading-relaxed">
+            Únete a Cosmos y opera con igualdad de oportunidades. Sin monopolios, sin barreras de capital.
+          </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Link
               to="/registro"
-              className="inline-flex items-center justify-center px-6 py-3.5 font-medium bg-cosmos-accent text-cosmos-bg border-0 rounded-lg hover:bg-cosmos-accent-hover transition-all shadow-lg"
+              className="inline-flex items-center justify-center px-8 py-4 font-semibold bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover transition-all shadow-lg"
             >
               Crear cuenta
             </Link>
             <Link
               to="/tienda"
-              className="inline-flex items-center justify-center px-6 py-3.5 font-medium bg-cosmos-surface-elevated text-cosmos-text border border-cosmos-border rounded-lg hover:border-cosmos-accent hover:text-cosmos-accent transition-colors"
+              className="inline-flex items-center justify-center px-8 py-4 font-semibold bg-cosmos-surface-elevated text-cosmos-text border border-cosmos-border rounded-xl hover:border-cosmos-accent hover:text-cosmos-accent transition-colors"
             >
               Ver tienda
             </Link>

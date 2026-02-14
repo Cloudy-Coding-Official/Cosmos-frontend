@@ -31,6 +31,8 @@ export function Footer() {
               <li className="mb-2"><Link to="/tienda" className="text-[0.9375rem] text-cosmos-text/90 hover:text-cosmos-accent transition-colors">Comprar</Link></li>
               <li className="mb-2"><Link to="/vender" className="text-[0.9375rem] text-cosmos-text/90 hover:text-cosmos-accent transition-colors">Vender</Link></li>
               <li className="mb-2"><Link to="/proveedores" className="text-[0.9375rem] text-cosmos-text/90 hover:text-cosmos-accent transition-colors">Proveedores</Link></li>
+              <li className="mb-2"><Link to="/cosmos-pay" className="text-[0.9375rem] text-cosmos-text/90 hover:text-cosmos-accent transition-colors">Cosmos Pay</Link></li>
+              <li className="mb-2"><Link to="/cosmos-founding" className="text-[0.9375rem] text-cosmos-text/90 hover:text-cosmos-accent transition-colors">Cosmos Founding</Link></li>
               <li className="mb-2"><Link to="/como-funciona" className="text-[0.9375rem] text-cosmos-text/90 hover:text-cosmos-accent transition-colors">Cómo funciona</Link></li>
             </ul>
           </div>

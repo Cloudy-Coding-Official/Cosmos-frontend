@@ -1,64 +1,84 @@
 import { Link } from "react-router-dom";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, Star, Sparkles } from "lucide-react";
 import { useState } from "react";
 
 const MOCK_PRODUCTS = [
-  { id: "1", name: "Auriculares inalámbricos", price: 49.99, image: null, seller: "TechStore" },
-  { id: "2", name: "Mochila urbana", price: 35.5, image: null, seller: "ModaLatam" },
-  { id: "3", name: "Cargador rápido 65W", price: 22.0, image: null, seller: "ElectroPlus" },
-  { id: "4", name: "Zapatillas running", price: 89.99, image: null, seller: "DeportesYA" },
-  { id: "5", name: "Café en grano 1kg", price: 12.5, image: null, seller: "CaféRegional" },
-  { id: "6", name: "Lámpara LED escritorio", price: 28.0, image: null, seller: "HogarCosmos" },
-  { id: "7", name: "Pack 3 camisetas básicas", price: 24.99, image: null, seller: "ModaLatam" },
-  { id: "8", name: "Reloj inteligente", price: 75.0, image: null, seller: "TechStore" },
+  { id: "1", name: "Auriculares inalámbricos", price: 49.99, image: null, seller: "TechStore", rating: 4.8 },
+  { id: "2", name: "Mochila urbana", price: 35.5, image: null, seller: "ModaLatam", rating: 4.6 },
+  { id: "3", name: "Cargador rápido 65W", price: 22.0, image: null, seller: "ElectroPlus", rating: 4.9 },
+  { id: "4", name: "Zapatillas running", price: 89.99, image: null, seller: "DeportesYA", rating: 4.7 },
+  { id: "5", name: "Café en grano 1kg", price: 12.5, image: null, seller: "CaféRegional", rating: 4.5 },
+  { id: "6", name: "Lámpara LED escritorio", price: 28.0, image: null, seller: "HogarCosmos", rating: 4.4 },
+  { id: "7", name: "Pack 3 camisetas básicas", price: 24.99, image: null, seller: "ModaLatam", rating: 4.6 },
+  { id: "8", name: "Reloj inteligente", price: 75.0, image: null, seller: "TechStore", rating: 4.8 },
 ];
 
 export function Shop() {
   const [search, setSearch] = useState("");
 
   return (
-    <div className="py-8 bg-cosmos-bg">
-      <div className="w-full max-w-[1200px] mx-auto px-6">
-        <div className="flex flex-wrap gap-4 items-center mb-6">
-          <div className="flex-1 min-w-[200px] relative">
-            <Search size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-cosmos-muted pointer-events-none" />
-            <input
-              type="search"
-              className="w-full pl-10 pr-4 py-3 font-sans text-base border border-cosmos-border bg-cosmos-surface text-cosmos-text placeholder:text-cosmos-muted focus:outline-none focus:border-cosmos-accent focus:ring-1 focus:ring-cosmos-accent rounded-lg transition-colors"
-              placeholder="Buscar productos, marcas o vendedores"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+    <div className="min-h-screen bg-cosmos-bg">
+      {/* Header visual mejorado */}
+      <div className="relative py-12 pb-8 bg-gradient-to-b from-cosmos-surface/60 to-transparent border-b border-cosmos-border/50">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(139,92,246,0.08)_0%,transparent_60%)]" />
+        <div className="relative w-full max-w-[1200px] mx-auto px-6">
+          <nav className="flex items-center gap-2 text-sm text-cosmos-muted mb-6">
+            <Link to="/" className="hover:text-cosmos-accent transition-colors">Inicio</Link>
+            <span>/</span>
+            <span className="text-cosmos-text">Tienda</span>
+          </nav>
+          <h1 className="font-display font-semibold text-cosmos-text text-2xl md:text-3xl m-0 mb-2 flex items-center gap-2">
+            <Sparkles size={28} className="text-cosmos-accent" />
+            Explora productos
+          </h1>
+          <p className="text-cosmos-muted m-0 mb-8">
+            Compra con confianza. Todos los productos cuentan con protección Cosmos.
+          </p>
+          <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex-1 min-w-[240px] max-w-xl relative">
+              <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-cosmos-muted pointer-events-none" />
+              <input
+                type="search"
+                className="w-full pl-12 pr-4 py-3.5 font-sans text-base border border-cosmos-border bg-cosmos-surface text-cosmos-text placeholder:text-cosmos-muted focus:outline-none focus:border-cosmos-accent focus:ring-2 focus:ring-cosmos-accent/20 rounded-xl transition-all"
+                placeholder="Buscar productos, marcas o vendedores"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 px-5 py-3.5 font-medium bg-cosmos-surface text-cosmos-text border border-cosmos-border rounded-xl hover:border-cosmos-accent hover:text-cosmos-accent hover:bg-cosmos-surface-elevated transition-all"
+            >
+              <SlidersHorizontal size={18} />
+              Filtros
+            </button>
           </div>
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 px-4 py-3 font-medium bg-cosmos-surface text-cosmos-text border border-cosmos-border rounded-lg hover:border-cosmos-accent hover:text-cosmos-accent transition-colors"
-          >
-            <SlidersHorizontal size={18} />
-            Filtros
-          </button>
         </div>
+      </div>
 
-        <nav className="flex items-center gap-2 text-sm text-cosmos-muted mb-8">
-          <Link to="/" className="hover:text-cosmos-accent transition-colors">Inicio</Link>
-          <span>/</span>
-          <span className="text-cosmos-text">Tienda</span>
-        </nav>
-
+      <div className="w-full max-w-[1200px] mx-auto px-6 py-10">
         <section className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {MOCK_PRODUCTS.map((product) => (
             <Link
               to={`/producto/${product.id}`}
               key={product.id}
-              className="block bg-cosmos-surface border border-cosmos-border text-cosmos-text rounded-xl overflow-hidden transition-all hover:-translate-y-1 hover:border-cosmos-border-strong hover:shadow-xl hover:shadow-black/20"
+              className="group block bg-cosmos-surface border border-cosmos-border text-cosmos-text rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:border-cosmos-accent/40 hover:shadow-xl hover:shadow-cosmos-accent/5"
             >
-              <div className="aspect-square bg-cosmos-surface-elevated" />
-              <div className="p-4">
-                <h3 className="font-medium text-cosmos-text m-0 mb-1 line-clamp-2">{product.name}</h3>
-                <p className="text-sm text-cosmos-muted m-0 mb-1">{product.seller}</p>
-                <p className="text-cosmos-text font-medium m-0">
+              <div className="aspect-square bg-gradient-to-br from-cosmos-surface-elevated to-cosmos-surface relative overflow-hidden">
+                <div className="absolute inset-0 bg-cosmos-accent/5 group-hover:bg-cosmos-accent/10 transition-colors" />
+                <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 bg-cosmos-bg/90 rounded-lg">
+                  <Star size={14} className="text-amber-400 fill-amber-400" />
+                  <span className="text-xs font-medium text-cosmos-text">{product.rating}</span>
+                </div>
+              </div>
+              <div className="p-5">
+                <h3 className="font-semibold text-cosmos-text m-0 mb-1 line-clamp-2 group-hover:text-cosmos-accent transition-colors">
+                  {product.name}
+                </h3>
+                <p className="text-sm text-cosmos-muted m-0 mb-3">{product.seller}</p>
+                <p className="text-cosmos-text font-semibold m-0">
                   US$ {product.price.toFixed(2)}
-                  <span className="text-xs font-normal text-cosmos-muted"> 1% + $0.10 protección</span>
+                  <span className="text-xs font-normal text-cosmos-muted block mt-0.5">1% + $0.10 protección</span>
                 </p>
               </div>
             </Link>
