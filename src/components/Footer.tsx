@@ -1,14 +1,15 @@
 import { Link } from "react-router-dom";
 import { Linkedin, Twitter, Youtube, Github, MessageCircle } from "lucide-react";
+import { BrandLogo } from "./BrandLogo";
 
 export function Footer() {
   return (
     <footer className="mt-auto bg-cosmos-surface border-t border-cosmos-border">
       <div className="w-full max-w-[1200px] mx-auto px-6 py-16 grid gap-8 md:grid-cols-[1fr_2fr] md:items-start">
         <div className="max-w-[280px]">
-          <Link to="/" className="inline-flex items-center gap-2 font-display text-2xl font-semibold text-cosmos-text mb-3 hover:text-cosmos-accent transition-colors">
-            <span className="text-cosmos-accent">◇</span>
-            Cosmos
+          <Link to="/" className="inline-flex items-center gap-2 mb-3 hover:opacity-90 transition-opacity">
+            <BrandLogo variant="full" className="h-9 w-auto" alt="Cosmos" />
+            <span className="text-cosmos-text text-xl">Cosmos</span>
           </Link>
           <p className="text-[0.9375rem] text-cosmos-muted leading-normal m-0">
             Igualdad de oportunidades para comprar, vender y producir.

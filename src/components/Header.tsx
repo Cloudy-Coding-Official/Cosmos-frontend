@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X, ShoppingCart, User, Store } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { BrandLogo } from "./BrandLogo";
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -11,9 +12,9 @@ export function Header() {
   return (
     <header className="sticky top-0 z-[100] h-[72px] bg-cosmos-surface/80 border-b border-cosmos-border backdrop-blur-xl">
       <div className="w-full max-w-[1200px] mx-auto px-6 h-full flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 font-display text-2xl font-semibold text-cosmos-text" aria-label="Cosmos inicio">
-          <span className="text-cosmos-accent text-xl">◇</span>
-          <span>Cosmos</span>
+        <Link to="/" className="flex items-center gap-2 text-cosmos-text" aria-label="Cosmos inicio">
+          <BrandLogo variant="full" className="h-8 w-auto" alt="Cosmos - Inicio" />
+          <span className="text-cosmos-text text-xl">Cosmos</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">

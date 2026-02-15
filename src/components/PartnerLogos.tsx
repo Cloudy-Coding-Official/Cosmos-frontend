@@ -1,12 +1,19 @@
-const PARTNERS = [
-  { name: "Stellar", logo: "/logos/stellar.svg", style: { height: "60px" } },
+type Partner = {
+  name: string;
+  logo: string;
+  style: { height: string };
+  imagotypeOnly?: boolean;
+};
+
+const PARTNERS: Partner[] = [
+  { name: "Stellar", logo: "/stellar.svg", style: { height: "36px" }, imagotypeOnly: true },
   { name: "Cosmos", logo: "/logos/cosmos.svg", style: { height: "60px" } },
   { name: "Horizon", logo: "/logos/horizon.svg", style: { height: "60px" } },
   { name: "Atlas", logo: "/logos/atlas.svg", style: { height: "60px" } },
   { name: "Nova", logo: "/logos/nova.svg", style: { height: "60px" } },
   { name: "Mercury", logo: "/logos/mercury.svg", style: { height: "60px" } },
   { name: "Luna", logo: "/logos/luna.svg", style: { height: "60px" } },
-  { name: "Orbit", logo: "/logos/orbit.svg", style: { height: "60px" }},
+  { name: "Orbit", logo: "/logos/orbit.svg", style: { height: "60px" } },
 ];
 
 export function PartnerLogos() {
