@@ -116,7 +116,7 @@ export function Landing() {
                 ))}
               </ul>
               <Link
-                to="/cosmos-pay"
+                to="/#"
                 className="inline-flex items-center gap-2 px-6 py-3.5 font-semibold bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover transition-all"
               >
                 Conocer Cosmos Pay

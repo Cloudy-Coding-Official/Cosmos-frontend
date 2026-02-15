@@ -23,7 +23,6 @@ export function Header() {
           </Link>
           <Link to="/vender" className="px-3 py-2 text-[0.9375rem] font-medium text-cosmos-muted hover:text-cosmos-text hover:bg-cosmos-surface-elevated rounded-lg transition-colors">Vender</Link>
           <Link to="/proveedores" className={`px-3 py-2 text-[0.9375rem] font-medium rounded-lg transition-colors ${location.pathname.startsWith("/proveedores") ? "text-cosmos-text bg-cosmos-surface-elevated" : "text-cosmos-muted hover:text-cosmos-text hover:bg-cosmos-surface-elevated"}`}>Proveedores</Link>
-          <Link to="/cosmos-pay" className="px-3 py-2 text-[0.9375rem] font-medium text-cosmos-muted hover:text-cosmos-text hover:bg-cosmos-surface-elevated rounded-lg transition-colors">Cosmos Pay</Link>
           <Link to="/como-funciona" className="px-3 py-2 text-[0.9375rem] font-medium text-cosmos-muted hover:text-cosmos-text hover:bg-cosmos-surface-elevated rounded-lg transition-colors">Cómo funciona</Link>
         </nav>
 

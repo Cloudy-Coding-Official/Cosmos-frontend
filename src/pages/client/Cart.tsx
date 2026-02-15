@@ -1,15 +1,11 @@
 import { Link } from "react-router-dom";
 import { Trash2, ShoppingBag, Shield } from "lucide-react";
-
-const MOCK_ITEMS = [
-  { id: "1", name: "Auriculares inalámbricos", price: 49.99, quantity: 1, image: null },
-  { id: "2", name: "Cargador rápido 65W", price: 22.0, quantity: 2, image: null },
-];
+import { CART_ITEMS, getCartSubtotal, getCartFee, getCartTotal } from "../../data/cart";
 
 export function Cart() {
-  const subtotal = MOCK_ITEMS.reduce((acc, i) => acc + i.price * i.quantity, 0);
-  const fee = MOCK_ITEMS.length * 0.1 + subtotal * 0.01;
-  const total = subtotal + fee;
+  const subtotal = getCartSubtotal(CART_ITEMS);
+  const fee = getCartFee(CART_ITEMS);
+  const total = getCartTotal(CART_ITEMS);
 
   return (
     <div className="min-h-screen bg-cosmos-bg py-8 md:py-12">
@@ -23,14 +19,14 @@ export function Cart() {
               Tu carrito
             </h1>
             <p className="text-cosmos-muted text-sm m-0">
-              {MOCK_ITEMS.length} {MOCK_ITEMS.length === 1 ? "producto" : "productos"}
+              {CART_ITEMS.length} {CART_ITEMS.length === 1 ? "producto" : "productos"}
             </p>
           </div>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
           <div className="flex flex-col gap-4">
-            {MOCK_ITEMS.map((item) => (
+            {CART_ITEMS.map((item) => (
               <article
                 key={item.id}
                 className="flex flex-wrap gap-5 p-6 bg-cosmos-surface border border-cosmos-border text-cosmos-text rounded-2xl hover:border-cosmos-border-strong transition-colors"

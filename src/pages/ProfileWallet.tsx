@@ -119,12 +119,6 @@ export function ProfileWallet() {
                   ))}
                 </div>
               )}
-              <Link
-                to="/perfil/wallet/gasto"
-                className="inline-flex items-center justify-center mt-4 w-full sm:w-auto bg-cosmos-accent text-cosmos-bg px-6 py-3 rounded-full font-bold hover:bg-cosmos-accent-hover transition-colors"
-              >
-                Cargar gasto
-              </Link>
             </div>
 
             <div className="bg-cosmos-surface border border-cosmos-border rounded-2xl p-6">

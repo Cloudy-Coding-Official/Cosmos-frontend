@@ -5,6 +5,7 @@ import {
   BarChart3,
   Upload,
   ArrowRight,
+  TrendingUp,
 } from "lucide-react";
 
 export function RetailerDashboard() {
@@ -84,6 +85,25 @@ export function RetailerDashboard() {
             </p>
             <span className="inline-flex items-center gap-2 text-sm font-medium text-cosmos-accent">
               Ver listado <ArrowRight size={16} />
+            </span>
+          </Link>
+
+          {/* Ventas */}
+          <Link
+            to="/retailer/ventas"
+            className="group block p-6 bg-cosmos-surface border border-cosmos-border rounded-2xl hover:border-cosmos-accent/40 hover:shadow-xl hover:shadow-cosmos-accent/5 transition-all"
+          >
+            <div className="w-12 h-12 rounded-xl bg-cosmos-accent-soft flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <TrendingUp className="text-cosmos-accent" size={24} />
+            </div>
+            <h3 className="font-display font-semibold text-cosmos-text text-lg m-0 mb-2">
+              Ventas
+            </h3>
+            <p className="text-sm text-cosmos-muted m-0 mb-4">
+              Historial de ventas a tus clientes finales.
+            </p>
+            <span className="inline-flex items-center gap-2 text-sm font-medium text-cosmos-accent">
+              Ver ventas <ArrowRight size={16} />
             </span>
           </Link>
 

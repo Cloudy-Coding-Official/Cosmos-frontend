@@ -5,41 +5,37 @@ export function ProveedoresProductos() {
   return (
     <div className="min-h-screen bg-cosmos-bg py-8 md:py-12">
       <div className="w-full max-w-[1200px] mx-auto px-6">
-        <nav className="flex items-center gap-2 text-sm text-cosmos-muted mb-6">
-          <Link to="/proveedores" className="hover:text-emerald-400 transition-colors">Proveedores</Link>
+        <nav className="flex items-center gap-2 text-sm text-cosmos-muted mb-8">
+          <Link to="/proveedores" className="hover:text-cosmos-accent">Proveedores</Link>
           <span>/</span>
-          <span className="text-cosmos-text">Productos</span>
+          <span className="text-cosmos-text">Catálogo</span>
         </nav>
 
-        <h1 className="font-display font-semibold text-cosmos-text text-2xl md:text-3xl m-0 mb-2">
-          Subir productos
-        </h1>
-        <p className="text-cosmos-muted m-0 mb-10">
-          Publica tu catálogo para que los retailers puedan vender tus productos.
-        </p>
-
-        <div className="p-8 bg-cosmos-surface border border-cosmos-border rounded-2xl border-dashed hover:border-emerald-500/40 transition-all">
-          <div className="text-center py-12">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
-              <Package size={32} className="text-emerald-400" />
-            </div>
-            <h3 className="font-display font-semibold text-cosmos-text text-lg m-0 mb-2">
-              Agregar producto
-            </h3>
-            <p className="text-sm text-cosmos-muted m-0 mb-6 max-w-md mx-auto">
-              Sube tus productos con nombre, descripción, precio y fotos. Los retailers verán tu catálogo y podrán venderlos.
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <div>
+            <h1 className="font-display font-semibold text-cosmos-text text-2xl m-0 mb-1">
+              Catálogo
+            </h1>
+            <p className="text-cosmos-muted text-sm m-0">
+              Lo que subís acá aparece en las tiendas de los retailers.
             </p>
-            <button className="inline-flex items-center gap-2 px-6 py-3 font-medium bg-emerald-600 text-white rounded-xl hover:bg-emerald-500 transition-colors">
-              <Plus size={20} />
-              Subir producto
-            </button>
           </div>
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 px-5 py-2.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover transition-colors"
+          >
+            <Plus size={18} />
+            Nuevo producto
+          </button>
         </div>
 
-        <div className="mt-12 p-6 bg-cosmos-surface border border-cosmos-border rounded-2xl">
-          <h3 className="font-display font-semibold text-cosmos-text m-0 mb-4">Mis productos</h3>
+        <div className="p-12 border border-dashed border-cosmos-border rounded-xl text-center">
+          <div className="w-14 h-14 rounded-xl bg-cosmos-surface-elevated flex items-center justify-center mx-auto mb-4">
+            <Package size={28} className="text-cosmos-muted" />
+          </div>
+          <p className="text-cosmos-muted m-0 mb-2">Sin productos todavía</p>
           <p className="text-sm text-cosmos-muted m-0">
-            Aquí aparecerán los productos que hayas publicado.
+            Agregá tu primer producto para que los retailers puedan venderlo.
           </p>
         </div>
       </div>
