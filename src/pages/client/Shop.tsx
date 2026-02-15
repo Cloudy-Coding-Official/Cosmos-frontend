@@ -1,17 +1,8 @@
 import { Link } from "react-router-dom";
 import { Search, SlidersHorizontal, Star, Sparkles } from "lucide-react";
 import { useState } from "react";
-
-const MOCK_PRODUCTS = [
-  { id: "1", name: "Auriculares inalámbricos", price: 49.99, image: null, seller: "TechStore", rating: 4.8 },
-  { id: "2", name: "Mochila urbana", price: 35.5, image: null, seller: "ModaLatam", rating: 4.6 },
-  { id: "3", name: "Cargador rápido 65W", price: 22.0, image: null, seller: "ElectroPlus", rating: 4.9 },
-  { id: "4", name: "Zapatillas running", price: 89.99, image: null, seller: "DeportesYA", rating: 4.7 },
-  { id: "5", name: "Café en grano 1kg", price: 12.5, image: null, seller: "CaféRegional", rating: 4.5 },
-  { id: "6", name: "Lámpara LED escritorio", price: 28.0, image: null, seller: "HogarCosmos", rating: 4.4 },
-  { id: "7", name: "Pack 3 camisetas básicas", price: 24.99, image: null, seller: "ModaLatam", rating: 4.6 },
-  { id: "8", name: "Reloj inteligente", price: 75.0, image: null, seller: "TechStore", rating: 4.8 },
-];
+import { MOCK_PRODUCTS } from "../../data/products";
+import { ProductImage } from "../../components/ProductImage";
 
 export function Shop() {
   const [search, setSearch] = useState("");
@@ -64,6 +55,12 @@ export function Shop() {
               className="group block bg-cosmos-surface border border-cosmos-border text-cosmos-text rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:border-cosmos-accent/40 hover:shadow-xl hover:shadow-cosmos-accent/5"
             >
               <div className="aspect-square bg-gradient-to-br from-cosmos-surface-elevated to-cosmos-surface relative overflow-hidden">
+                <ProductImage
+                  src={product.image}
+                  alt={product.name}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  wrapperClassName="absolute inset-0"
+                />
                 <div className="absolute inset-0 bg-cosmos-accent/5 group-hover:bg-cosmos-accent/10 transition-colors" />
                 <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 bg-cosmos-bg/90 rounded-lg">
                   <Star size={14} className="text-amber-400 fill-amber-400" />

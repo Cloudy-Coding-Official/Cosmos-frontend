@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { Package, Truck, CheckCircle, ChevronRight, ArrowLeft } from "lucide-react";
 import type { Order } from "../../data/orders";
 import { getOrder, ingresarCodigoComprador, marcarEnCamino } from "../../data/orders";
+import { getProductById } from "../../data/products";
+import { ProductImage } from "../../components/ProductImage";
 
 const PASOS: { id: "comprado" | "en_camino" | "confirmado"; label: string; icon: typeof Package }[] = [
   { id: "comprado", label: "Comprado", icon: Package },
@@ -119,13 +121,23 @@ export function PurchaseTracking() {
           <h3 className="font-semibold text-cosmos-text m-0 mb-4">Detalles</h3>
           <p className="text-sm text-cosmos-muted m-0 mb-1">Tienda: {order.tienda}</p>
           <p className="text-sm text-cosmos-muted m-0 mb-4">Envío a: {order.direccionEnvio}</p>
-          <ul className="space-y-2 m-0 p-0 list-none">
+          <ul className="space-y-3 m-0 p-0 list-none">
             {order.items.map((item) => (
-              <li key={item.id} className="flex justify-between text-sm">
-                <span className="text-cosmos-text">
-                  {item.name} × {item.quantity}
-                </span>
-                <span className="text-cosmos-muted">US$ {(item.price * item.quantity).toFixed(2)}</span>
+              <li key={item.id} className="flex items-center gap-3 text-sm">
+                <div className="w-12 h-12 shrink-0 rounded-lg overflow-hidden bg-cosmos-surface-elevated">
+                  <ProductImage
+                    src={getProductById(item.id)?.image}
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                    wrapperClassName="w-full h-full"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-cosmos-text block">
+                    {item.name} × {item.quantity}
+                  </span>
+                  <span className="text-cosmos-muted">US$ {(item.price * item.quantity).toFixed(2)}</span>
+                </div>
               </li>
             ))}
           </ul>

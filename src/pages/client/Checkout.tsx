@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Shield, CreditCard, Truck, ChevronRight } from "lucide-react";
 import { CART_ITEMS, getCartSubtotal, getCartFee, getCartTotal } from "../../data/cart";
 import { addOrder } from "../../data/orders";
+import { getProductById } from "../../data/products";
+import { ProductImage } from "../../components/ProductImage";
 
 const PASOS = [
   { id: 1, label: "Envío", icon: Truck },
@@ -241,11 +243,21 @@ export function Checkout() {
               <h2 className="font-semibold text-cosmos-text m-0 mb-4">Tu pedido</h2>
               <div className="space-y-3 mb-4 max-h-[200px] overflow-y-auto">
                 {CART_ITEMS.map((item) => (
-                  <div key={item.id} className="flex justify-between text-sm">
-                    <span className="text-cosmos-text">
-                      {item.name} × {item.quantity}
-                    </span>
-                    <span className="text-cosmos-muted">US$ {(item.price * item.quantity).toFixed(2)}</span>
+                  <div key={item.id} className="flex items-center gap-3 text-sm">
+                    <div className="w-12 h-12 shrink-0 rounded-lg overflow-hidden bg-cosmos-surface-elevated">
+                      <ProductImage
+                        src={getProductById(item.id)?.image ?? item.image}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                        wrapperClassName="w-full h-full"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-cosmos-text block truncate">
+                        {item.name} × {item.quantity}
+                      </span>
+                      <span className="text-cosmos-muted">US$ {(item.price * item.quantity).toFixed(2)}</span>
+                    </div>
                   </div>
                 ))}
               </div>

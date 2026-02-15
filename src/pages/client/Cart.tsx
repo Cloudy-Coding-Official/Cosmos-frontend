@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Trash2, ShoppingBag, Shield } from "lucide-react";
 import { CART_ITEMS, getCartSubtotal, getCartFee, getCartTotal } from "../../data/cart";
+import { ProductImage } from "../../components/ProductImage";
 
 export function Cart() {
   const subtotal = getCartSubtotal(CART_ITEMS);
@@ -31,7 +32,14 @@ export function Cart() {
                 key={item.id}
                 className="flex flex-wrap gap-5 p-6 bg-cosmos-surface border border-cosmos-border text-cosmos-text rounded-2xl hover:border-cosmos-border-strong transition-colors"
               >
-                <div className="w-24 h-24 shrink-0 bg-gradient-to-br from-cosmos-surface-elevated to-cosmos-surface rounded-xl" />
+                <div className="w-24 h-24 shrink-0 rounded-xl overflow-hidden bg-cosmos-surface-elevated">
+                  <ProductImage
+                    src={item.image}
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                    wrapperClassName="w-full h-full"
+                  />
+                </div>
                 <div className="flex-1 min-w-[200px]">
                   <Link
                     to={`/producto/${item.id}`}
