@@ -1,10 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, ShoppingCart, User, Store } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
+  const { isLoggedIn } = useAuth();
 
   return (
     <header className="sticky top-0 z-[100] h-[72px] bg-cosmos-surface/80 border-b border-cosmos-border backdrop-blur-xl">
@@ -30,16 +32,27 @@ export function Header() {
           <Link to="/carrito" className="flex items-center justify-center w-10 h-10 text-cosmos-text hover:text-cosmos-accent hover:bg-cosmos-surface-elevated rounded-lg transition-colors" aria-label="Carrito">
             <ShoppingCart size={20} />
           </Link>
-          <Link to="/perfil" className="flex items-center justify-center w-10 h-10 text-cosmos-text hover:text-cosmos-accent hover:bg-cosmos-surface-elevated rounded-lg transition-colors" aria-label="Perfil">
-            <User size={20} />
-          </Link>
-          <Link
-            to="/retailer"
-            className="hidden md:inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-cosmos-text border border-cosmos-border hover:border-cosmos-accent hover:text-cosmos-accent rounded-lg transition-colors bg-cosmos-surface-elevated/50"
-          >
-            <Store size={18} />
-            Mi tienda
-          </Link>
+          {isLoggedIn ? (
+            <>
+              <Link to="/perfil" className="flex items-center justify-center w-10 h-10 text-cosmos-text hover:text-cosmos-accent hover:bg-cosmos-surface-elevated rounded-lg transition-colors" aria-label="Perfil">
+                <User size={20} />
+              </Link>
+              <Link
+                to="/retailer"
+                className="hidden md:inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-cosmos-text border border-cosmos-border hover:border-cosmos-accent hover:text-cosmos-accent rounded-lg transition-colors bg-cosmos-surface-elevated/50"
+              >
+                <Store size={18} />
+                Mi tienda
+              </Link>
+            </>
+          ) : (
+            <Link
+              to="/login"
+              className="hidden md:inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover"
+            >
+              Iniciar sesión
+            </Link>
+          )}
           <button
             type="button"
             className="flex md:hidden items-center justify-center w-10 h-10 p-0 bg-transparent border-0 text-cosmos-text cursor-pointer rounded-lg hover:bg-cosmos-surface-elevated"
@@ -59,8 +72,14 @@ export function Header() {
           <Link to="/cosmos-pay" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated">Cosmos Pay</Link>
           <Link to="/como-funciona" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated">Cómo funciona</Link>
           <Link to="/carrito" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated">Carrito</Link>
-          <Link to="/perfil" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated">Perfil</Link>
-          <Link to="/retailer" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated">Mi tienda</Link>
+          {isLoggedIn ? (
+            <>
+              <Link to="/perfil" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated">Perfil</Link>
+              <Link to="/retailer" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated">Mi tienda</Link>
+            </>
+          ) : (
+            <Link to="/login" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-accent rounded-lg">Iniciar sesión</Link>
+          )}
         </div>
       )}
     </header>

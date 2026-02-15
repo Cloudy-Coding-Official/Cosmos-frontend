@@ -18,7 +18,6 @@ export function Shop() {
 
   return (
     <div className="min-h-screen bg-cosmos-bg">
-      {/* Header visual mejorado */}
       <div className="relative py-12 pb-8 bg-gradient-to-b from-cosmos-surface/60 to-transparent border-b border-cosmos-border/50">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(139,92,246,0.08)_0%,transparent_60%)]" />
         <div className="relative w-full max-w-[1200px] mx-auto px-6">
@@ -78,7 +77,6 @@ export function Shop() {
                 <p className="text-sm text-cosmos-muted m-0 mb-3">{product.seller}</p>
                 <p className="text-cosmos-text font-semibold m-0">
                   US$ {product.price.toFixed(2)}
-                  <span className="text-xs font-normal text-cosmos-muted block mt-0.5">1% + $0.10 protección</span>
                 </p>
               </div>
             </Link>

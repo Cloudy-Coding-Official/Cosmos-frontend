@@ -1,7 +1,60 @@
-import { Link } from "react-router-dom";
-import { User, Mail, Shield, Store, LogOut, Key, ShoppingBag, Sparkles } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { User, Mail, Shield, Store, LogOut, Key, ShoppingBag, Sparkles, LayoutDashboard, Package, TrendingUp, Wallet, ShoppingCart } from "lucide-react";
 import { WalletSummary } from "../components/WalletSummary";
 import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { getOrders } from "../data/orders";
+
+function MisCompras() {
+  const orders = getOrders();
+  if (orders.length === 0) {
+    return (
+      <p className="text-cosmos-muted text-sm m-0 mb-4">
+        Aún no tenés compras. <Link to="/tienda" className="text-cosmos-accent hover:underline">Explorar tienda</Link>
+      </p>
+    );
+  }
+  const estadoLabels: Record<string, string> = {
+    comprado: "Comprado",
+    en_camino: "En camino",
+    confirmado: "Confirmado",
+  };
+  return (
+    <div className="space-y-3">
+      {orders.map((o) => (
+        <Link
+          key={o.id}
+          to={"/perfil/compras/" + o.id}
+          className="block p-4 rounded-xl border border-cosmos-border hover:border-cosmos-accent/40 hover:bg-cosmos-surface-elevated transition-all"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="font-medium text-cosmos-text">{o.id}</span>
+            <span
+              className={`text-xs font-medium px-2.5 py-1 rounded-lg ${
+                o.estado === "confirmado"
+                  ? "bg-emerald-500/20 text-emerald-400"
+                  : o.estado === "en_camino"
+                  ? "bg-amber-500/20 text-amber-400"
+                  : "bg-cosmos-accent-soft text-cosmos-accent"
+              }`}
+            >
+              {estadoLabels[o.estado]}
+            </span>
+          </div>
+          <p className="text-sm text-cosmos-muted m-0 mt-1">
+            {new Date(o.fecha).toLocaleDateString("es-AR", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            })}{" "}
+            · US$ {o.monto.toFixed(2)} · {o.tienda}
+          </p>
+          <p className="text-xs text-cosmos-accent mt-2 m-0">Ver seguimiento →</p>
+        </Link>
+      ))}
+    </div>
+  );
+}
 
 const MOCK_USER = {
   name: "María García",
@@ -14,11 +67,38 @@ export function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(MOCK_USER.name);
   const [email, setEmail] = useState(MOCK_USER.email);
+  const { isLoggedIn, logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
     setIsEditing(false);
   };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-[calc(100vh-72px-200px)] bg-cosmos-bg py-8 md:py-12">
+        <div className="w-full max-w-[600px] mx-auto px-6 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-cosmos-accent-soft flex items-center justify-center mx-auto mb-6">
+            <User size={32} className="text-cosmos-accent" />
+          </div>
+          <h1 className="font-display font-semibold text-cosmos-text text-2xl m-0 mb-4">Inicia sesión para ver tu perfil</h1>
+          <p className="text-cosmos-muted mb-8">Accede a tu cuenta para gestionar tu perfil, wallet y dashboards.</p>
+          <Link
+            to="/login"
+            className="inline-flex items-center gap-2 px-6 py-3 font-medium bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover transition-colors"
+          >
+            Iniciar sesión
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[calc(100vh-72px-200px)] bg-cosmos-bg py-8 md:py-12">
@@ -105,6 +185,51 @@ export function Profile() {
           </div>
         </section>
 
+        <section className="mb-8 p-6 bg-cosmos-surface border border-cosmos-border rounded-2xl hover:border-cosmos-border-strong transition-colors">
+          <h3 className="font-display font-semibold text-cosmos-text text-lg m-0 mb-4 flex items-center gap-2">
+            <ShoppingCart size={20} className="text-cosmos-accent" />
+            Mis compras
+          </h3>
+          <MisCompras />
+        </section>
+
+        <section className="mb-8 p-6 bg-cosmos-surface border border-cosmos-border rounded-2xl hover:border-cosmos-border-strong transition-colors">
+          <h3 className="font-display font-semibold text-cosmos-text text-lg m-0 mb-4 flex items-center gap-2">
+            <LayoutDashboard size={20} className="text-cosmos-accent" />
+            Accesos rápidos
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <Link
+              to="/retailer"
+              className="flex items-center gap-3 p-4 rounded-xl border border-cosmos-border hover:border-cosmos-accent hover:bg-cosmos-surface-elevated transition-all group"
+            >
+              <Store size={22} className="text-cosmos-accent group-hover:scale-110 transition-transform" />
+              <span className="font-medium text-cosmos-text">Mi tienda (Retailer)</span>
+            </Link>
+            <Link
+              to="/proveedores"
+              className="flex items-center gap-3 p-4 rounded-xl border border-cosmos-border hover:border-cosmos-accent hover:bg-cosmos-surface-elevated transition-all group"
+            >
+              <Package size={22} className="text-cosmos-accent group-hover:scale-110 transition-transform" />
+              <span className="font-medium text-cosmos-text">Proveedores</span>
+            </Link>
+            <Link
+              to="/cosmos-pay"
+              className="flex items-center gap-3 p-4 rounded-xl border border-cosmos-border hover:border-cosmos-accent hover:bg-cosmos-surface-elevated transition-all group"
+            >
+              <Wallet size={22} className="text-cosmos-accent group-hover:scale-110 transition-transform" />
+              <span className="font-medium text-cosmos-text">Cosmos Pay</span>
+            </Link>
+            <Link
+              to="/perfil/wallet"
+              className="flex items-center gap-3 p-4 rounded-xl border border-cosmos-border hover:border-cosmos-accent hover:bg-cosmos-surface-elevated transition-all group"
+            >
+              <TrendingUp size={22} className="text-cosmos-accent group-hover:scale-110 transition-transform" />
+              <span className="font-medium text-cosmos-text">Mi wallet</span>
+            </Link>
+          </div>
+        </section>
+
         <section className="mb-8">
           <WalletSummary
             viewDetails={true}
@@ -160,6 +285,7 @@ export function Profile() {
         <div className="pt-4 border-t border-cosmos-border">
           <button
             type="button"
+            onClick={handleLogout}
             className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-cosmos-muted hover:text-red-400 transition-colors rounded-xl hover:bg-red-500/10"
           >
             <LogOut size={18} />

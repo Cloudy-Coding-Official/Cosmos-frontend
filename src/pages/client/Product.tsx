@@ -10,12 +10,20 @@ const MOCK = {
   rating: 4.8,
   reviews: 124,
   description: "Sonido premium, batería hasta 30h. Compatible con Bluetooth 5.2. Incluye estuche y cable USB-C.",
-  fee: "1% + US$ 0.10 (protección Cosmos)",
   highlights: [
     "Cancelación de ruido activa",
     "Batería 30 horas",
     "Bluetooth 5.2",
     "Estuche incluido",
+  ],
+  specs: [
+    { label: "Conectividad", value: "Bluetooth 5.2" },
+    { label: "Batería", value: "Hasta 30 h" },
+    { label: "Driver", value: "40 mm" },
+    { label: "Impedancia", value: "32 Ω" },
+    { label: "Rango de frecuencia", value: "20 Hz - 20 kHz" },
+    { label: "Peso", value: "250 g" },
+    { label: "Incluye", value: "Estuche, cable USB-C" },
   ],
 };
 
@@ -37,7 +45,6 @@ export function Product() {
         </nav>
 
         <div className="grid gap-12 lg:grid-cols-[1fr_1fr]">
-          {/* Imagen */}
           <div className="relative">
             <div className="aspect-square bg-gradient-to-br from-cosmos-surface-elevated to-cosmos-surface rounded-2xl overflow-hidden border border-cosmos-border max-h-[520px]">
               <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 bg-cosmos-accent/90 rounded-lg">
@@ -47,7 +54,6 @@ export function Product() {
             </div>
           </div>
 
-          {/* Info */}
           <div>
             <p className="text-xs font-medium uppercase tracking-wider text-cosmos-muted m-0 mb-2">
               {MOCK.seller}
@@ -63,10 +69,9 @@ export function Product() {
               <span className="text-cosmos-muted">({MOCK.reviews} valoraciones)</span>
             </div>
 
-            <p className="text-2xl font-bold text-cosmos-text m-0 mb-2">
+            <p className="text-2xl font-bold text-cosmos-text m-0 mb-6">
               US$ {MOCK.price.toFixed(2)}
             </p>
-            <p className="text-sm text-cosmos-muted m-0 mb-6">{MOCK.fee}</p>
 
             <p className="text-cosmos-muted leading-relaxed mb-6">{MOCK.description}</p>
 
@@ -119,6 +124,23 @@ export function Product() {
             </div>
           </div>
         </div>
+
+        <section className="mt-16 pt-12 border-t border-cosmos-border">
+          <h2 className="font-display font-semibold text-cosmos-text text-xl m-0 mb-6">
+            Especificaciones
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {MOCK.specs.map((s) => (
+              <div
+                key={s.label}
+                className="flex justify-between items-baseline gap-4 py-3 px-4 bg-cosmos-surface rounded-xl border border-cosmos-border"
+              >
+                <span className="text-sm text-cosmos-muted">{s.label}</span>
+                <span className="text-cosmos-text font-medium text-right">{s.value}</span>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   );

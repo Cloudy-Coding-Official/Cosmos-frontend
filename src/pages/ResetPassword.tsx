@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { AuthLayout } from "../components/AuthLayout";
 
 export function ResetPassword() {
   const [email, setEmail] = useState("");
@@ -9,8 +10,8 @@ export function ResetPassword() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-72px-200px)] flex items-center justify-center py-12 px-6 bg-cosmos-bg">
-      <div className="w-full max-w-[420px] p-10 bg-cosmos-surface border border-cosmos-border rounded-xl shadow-xl">
+    <AuthLayout>
+      <div className="p-10 bg-cosmos-surface border border-cosmos-border rounded-xl shadow-xl">
         <h1 className="font-display text-[1.75rem] text-cosmos-text m-0 mb-1">Restablecer contraseña</h1>
         <p className="text-[0.9375rem] text-cosmos-muted m-0 mb-6">
           Ingresa tu correo y te enviaremos un enlace para crear una nueva contraseña.
@@ -37,6 +38,6 @@ export function ResetPassword() {
           <Link to="/login" className="text-cosmos-accent font-medium hover:text-cosmos-accent-hover">Volver a iniciar sesión</Link>
         </p>
       </div>
-    </div>
+    </AuthLayout>
   );
 }

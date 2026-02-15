@@ -26,7 +26,6 @@ export function RetailerDashboard() {
           </div>
         </div>
 
-        {/* Flujo: Proveedores → Retailer → Clientes */}
         <div className="mb-12 p-6 bg-cosmos-surface border border-cosmos-border rounded-2xl">
           <p className="text-xs font-semibold uppercase tracking-wider text-cosmos-muted mb-4">
             Tu lugar en Cosmos
@@ -50,7 +49,6 @@ export function RetailerDashboard() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {/* Subir productos */}
           <Link
             to="/retailer/productos"
             className="group block p-6 bg-cosmos-surface border border-cosmos-border rounded-2xl hover:border-cosmos-accent/40 hover:shadow-xl hover:shadow-cosmos-accent/5 transition-all"
@@ -69,7 +67,6 @@ export function RetailerDashboard() {
             </span>
           </Link>
 
-          {/* Listado de proveedores */}
           <Link
             to="/retailer/proveedores"
             className="group block p-6 bg-cosmos-surface border border-cosmos-border rounded-2xl hover:border-cosmos-accent/40 hover:shadow-xl hover:shadow-cosmos-accent/5 transition-all"
@@ -88,7 +85,6 @@ export function RetailerDashboard() {
             </span>
           </Link>
 
-          {/* Ventas */}
           <Link
             to="/retailer/ventas"
             className="group block p-6 bg-cosmos-surface border border-cosmos-border rounded-2xl hover:border-cosmos-accent/40 hover:shadow-xl hover:shadow-cosmos-accent/5 transition-all"
@@ -107,7 +103,6 @@ export function RetailerDashboard() {
             </span>
           </Link>
 
-          {/* Mis tiendas */}
           <Link
             to="/retailer/tiendas"
             className="group block p-6 bg-cosmos-surface border border-cosmos-border rounded-2xl hover:border-cosmos-accent/40 hover:shadow-xl hover:shadow-cosmos-accent/5 transition-all"
@@ -126,7 +121,6 @@ export function RetailerDashboard() {
             </span>
           </Link>
 
-          {/* Análisis de mercado */}
           <div className="group block p-6 bg-cosmos-surface border border-cosmos-border rounded-2xl hover:border-cosmos-accent/40 transition-all">
             <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center mb-4">
               <BarChart3 className="text-amber-500" size={24} />

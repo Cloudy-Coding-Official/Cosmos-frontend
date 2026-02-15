@@ -48,7 +48,6 @@ export function RetailerSuppliers() {
           Selecciona proveedores y compara costos por región.
         </p>
 
-        {/* Variación de costos entre proveedores */}
         <div className="mb-10 p-6 bg-cosmos-surface border border-cosmos-accent/20 rounded-2xl">
           <h3 className="font-display font-semibold text-cosmos-text m-0 mb-3 flex items-center gap-2">
             <DollarSign size={20} className="text-cosmos-accent" />

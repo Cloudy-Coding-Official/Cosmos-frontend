@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import { PartnerLogos } from "../components/PartnerLogos";
+import { CosmosPayMockup } from "../components/CosmosPayMockup";
 import {
   Wrench,
   Building2,
@@ -10,18 +12,14 @@ import {
   CreditCard,
   TrendingUp,
   Sparkles,
-  ArrowDownToLine,
-  ArrowUpFromLine,
-  Leaf,
   ChevronRight,
+  Leaf,
 } from "lucide-react";
 
 export function Landing() {
   return (
     <div className="overflow-hidden">
-      {/* Hero — más impactante */}
       <section className="relative min-h-[85vh] flex items-center pt-24 pb-20 bg-cosmos-bg overflow-hidden">
-        {/* Fondos decorativos */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(139,92,246,0.25)_0%,transparent_50%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_80%_100%,rgba(139,92,246,0.1)_0%,transparent_50%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_60%_at_10%_90%,rgba(167,139,250,0.08)_0%,transparent_50%)]" />
@@ -47,7 +45,7 @@ export function Landing() {
           </p>
           <div className="flex flex-wrap gap-4 justify-center mb-8">
             <Link
-              to="/registro"
+              to="/onboard"
               className="group inline-flex items-center justify-center gap-2 px-8 py-4 font-semibold bg-cosmos-accent text-cosmos-bg border-0 rounded-xl hover:bg-cosmos-accent-hover transition-all shadow-lg shadow-cosmos-accent/25 hover:shadow-xl hover:shadow-cosmos-accent/30 hover:scale-[1.02]"
             >
               Empezar a vender
@@ -64,27 +62,15 @@ export function Landing() {
             Solo 1% + US$ 0,10 por transacción · Protección estándar incluida
           </p>
 
-          {/* Trust badges */}
           <div className="mt-16 pt-12 border-t border-cosmos-border/60">
-            <p className="text-xs font-medium uppercase tracking-wider text-cosmos-muted mb-6">
+            <p className="text-xs font-medium uppercase tracking-wider text-cosmos-muted mb-8">
               Conectando productores y vendedores en Latinoamérica
             </p>
-            <div className="flex flex-wrap justify-center items-center gap-3">
-              {["Productor A", "Productor B", "Importador C", "Retail D", "Marca E"].map((name, i) => (
-                <span
-                  key={name}
-                  className="text-sm text-cosmos-muted px-5 py-2.5 bg-cosmos-surface/80 border border-cosmos-border rounded-xl hover:border-cosmos-accent/50 hover:text-cosmos-text transition-colors"
-                  style={{ animationDelay: `${i * 0.1}s` }}
-                >
-                  {name}
-                </span>
-              ))}
-            </div>
+            <PartnerLogos />
           </div>
         </div>
       </section>
 
-      {/* Cosmos Pay — Pasarela On/Off Ramp */}
       <section className="py-24 bg-gradient-to-b from-cosmos-surface/50 via-cosmos-bg to-cosmos-bg border-y border-cosmos-border">
         <div className="w-full max-w-[1200px] mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -116,105 +102,134 @@ export function Landing() {
                 ))}
               </ul>
               <Link
-                to="/#"
+                to="/cosmos-pay"
                 className="inline-flex items-center gap-2 px-6 py-3.5 font-semibold bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover transition-all"
               >
                 Conocer Cosmos Pay
                 <ChevronRight size={18} />
               </Link>
             </div>
-            <div className="relative">
-              <div className="p-8 bg-cosmos-surface border border-cosmos-border rounded-2xl shadow-xl">
-                <div className="flex gap-4 mb-6">
-                  <div className="flex-1 p-4 bg-cosmos-bg rounded-xl border border-cosmos-border">
-                    <div className="flex items-center gap-2 text-cosmos-muted text-sm mb-2">
-                      <ArrowDownToLine size={16} />
-                      On Ramp
-                    </div>
-                    <p className="text-lg font-semibold text-cosmos-text">Local → USDT</p>
-                    <p className="text-xs text-cosmos-muted mt-1">Depósito desde tu banco</p>
-                  </div>
-                  <div className="flex-1 p-4 bg-cosmos-bg rounded-xl border border-cosmos-border">
-                    <div className="flex items-center gap-2 text-cosmos-muted text-sm mb-2">
-                      <ArrowUpFromLine size={16} />
-                      Off Ramp
-                    </div>
-                    <p className="text-lg font-semibold text-cosmos-text">USDT → Local</p>
-                    <p className="text-xs text-cosmos-muted mt-1">Retiro a tu cuenta</p>
-                  </div>
-                </div>
-                <div className="h-px bg-cosmos-border my-4" />
-                <div className="text-center py-4">
-                  <p className="text-sm text-cosmos-muted">Tarifa estándar</p>
-                  <p className="text-2xl font-bold text-cosmos-accent">1% + US$ 0,10</p>
-                  <p className="text-xs text-cosmos-muted mt-1">Protección al comprador incluida</p>
-                </div>
-              </div>
+            <div className="relative lg:pl-4">
+              <CosmosPayMockup />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Cosmos Founding — Financiamiento LATAM */}
       <section className="py-24 bg-cosmos-bg">
         <div className="w-full max-w-[1200px] mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1">
-              <div className="relative p-8 bg-gradient-to-br from-cosmos-surface to-cosmos-surface-elevated border border-cosmos-accent/20 rounded-2xl">
-                <div className="absolute -top-3 -right-3 w-24 h-24 rounded-full bg-cosmos-accent/10 blur-2xl" />
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 rounded-xl bg-cosmos-accent-soft flex items-center justify-center">
-                    <Leaf className="text-cosmos-accent" size={28} />
-                  </div>
-                  <div>
-                    <h3 className="font-display font-semibold text-cosmos-text text-xl m-0">Cosmos Founding</h3>
-                    <p className="text-sm text-cosmos-muted m-0">Financia tu próximo paso</p>
-                  </div>
+          <div className="text-center mb-12">
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 mb-4 text-xs font-semibold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+              <TrendingUp size={14} />
+              Cosmos Founding
+            </span>
+            <h2 className="font-display font-semibold text-cosmos-text text-[clamp(1.75rem,4vw,2.5rem)] m-0 mb-4 leading-tight">
+              Financia proyectos
+              <br />
+              en América Latina
+            </h2>
+            <p className="text-cosmos-muted leading-relaxed max-w-[560px] mx-auto m-0">
+              Proyectos de retail, producción y logística validados por la comunidad.
+            </p>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 mb-10">
+            {[
+              {
+                nombre: "BioPack",
+                categoria: "Producción",
+                pais: "Argentina",
+                meta: 15000,
+                recaudado: 72,
+                desc: "Empaques biodegradables para retail",
+              },
+              {
+                nombre: "Café Andino",
+                categoria: "Retail",
+                pais: "Colombia",
+                meta: 8000,
+                recaudado: 45,
+                desc: "Cadena de cafeterías de origen local",
+              },
+              {
+                nombre: "LogiSur",
+                categoria: "Logística",
+                pais: "Chile",
+                meta: 25000,
+                recaudado: 18,
+                desc: "Red de entrega última milla en Cono Sur",
+              },
+            ].map((p) => (
+              <Link
+                key={p.nombre}
+                to="/cosmos-founding"
+                className="group block p-6 bg-cosmos-surface border border-cosmos-border rounded-2xl hover:border-emerald-500/40 hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-300 hover:-translate-y-1"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <span className="px-2.5 py-1 text-xs font-semibold text-emerald-400 bg-emerald-500/15 rounded-lg">
+                    {p.categoria}
+                  </span>
+                  <span className="text-xs text-cosmos-muted font-medium">{p.pais}</span>
                 </div>
-                <p className="text-cosmos-muted leading-relaxed mb-6">
-                  Apoya proyectos emprendedores en América Latina. Invierte en iniciativas verificadas,
-                  recibe retornos y contribuye al ecosistema regional.
+                <h3 className="font-display font-semibold text-cosmos-text text-lg m-0 mb-2 group-hover:text-emerald-400 transition-colors">
+                  {p.nombre}
+                </h3>
+                <p className="text-sm text-cosmos-muted m-0 mb-4 line-clamp-2 leading-relaxed">{p.desc}</p>
+                <div className="space-y-2">
+                  <div className="h-2 bg-cosmos-bg rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-500"
+                      style={{ width: `${p.recaudado}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-cosmos-muted m-0">
+                    <span className="font-semibold text-cosmos-text">
+                      US$ {(p.meta * p.recaudado / 100).toLocaleString()}
+                    </span>
+                    {" · "}meta US$ {p.meta.toLocaleString()}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          <div className="relative max-w-[720px] mx-auto">
+            <div className="absolute -inset-[1px] bg-gradient-to-r from-emerald-500/20 via-cosmos-accent/20 to-emerald-500/20 rounded-2xl blur-sm opacity-60" />
+            <div className="relative flex flex-col sm:flex-row gap-6 p-8 sm:p-10 bg-gradient-to-br from-cosmos-surface via-cosmos-surface to-cosmos-surface-elevated border border-cosmos-border rounded-2xl">
+              <div className="flex shrink-0">
+                <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                  <Leaf className="text-emerald-400" size={32} />
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-display font-semibold text-cosmos-text text-xl m-0 mb-2">¿Qué es Cosmos Founding?</h3>
+                <p className="text-cosmos-muted leading-relaxed m-0 mb-6">
+                  Conecta emprendedores con inversionistas. Apoyá proyectos verificados en América Latina,
+                  recibí retornos transparentes y contribuí al ecosistema regional.
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 mb-6">
                   {["Proyectos verificados", "Retornos transparentes", "LATAM first"].map((tag) => (
                     <span
                       key={tag}
-                      className="px-3 py-1.5 text-xs font-medium bg-cosmos-surface rounded-lg text-cosmos-text border border-cosmos-border"
+                      className="px-3 py-1.5 text-xs font-medium bg-cosmos-surface-elevated rounded-lg text-cosmos-text border border-cosmos-border"
                     >
                       {tag}
                     </span>
                   ))}
                 </div>
+                <Link
+                  to="/cosmos-founding"
+                  className="inline-flex items-center gap-2 px-6 py-3 font-semibold bg-emerald-600 text-white rounded-xl hover:bg-emerald-500 transition-colors border border-emerald-500/30"
+                >
+                  Explorar proyectos
+                  <ChevronRight size={18} />
+                </Link>
               </div>
-            </div>
-            <div className="order-1 lg:order-2">
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 mb-4 text-xs font-semibold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
-                <TrendingUp size={14} />
-                Cosmos Founding
-              </span>
-              <h2 className="font-display font-semibold text-cosmos-text text-[clamp(1.75rem,4vw,2.5rem)] m-0 mb-4 leading-tight">
-                Financia proyectos
-                <br />
-                en América Latina
-              </h2>
-              <p className="text-cosmos-muted leading-relaxed mb-6">
-                Cosmos Founding conecta emprendedores con inversionistas. Proyectos de retail,
-                producción y logística validados por la comunidad. Invierte en lo que conoces
-                y genera impacto real en la región.
-              </p>
-              <Link
-                to="/cosmos-founding"
-                className="inline-flex items-center gap-2 px-6 py-3.5 font-semibold bg-emerald-600 text-white rounded-xl hover:bg-emerald-500 transition-all border border-emerald-500/30"
-              >
-                Explorar proyectos
-                <ChevronRight size={18} />
-              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Para quién es Cosmos */}
       <section className="py-24 bg-cosmos-surface/50 border-y border-cosmos-border">
         <div className="w-full max-w-[1200px] mx-auto px-6 pt-4 pb-4">
           <span className="block mb-2 text-xs font-semibold uppercase tracking-wider text-cosmos-accent">
@@ -233,7 +248,7 @@ export function Landing() {
                 Vende sin invertir en stock. Conecta con proveedores y productores, elige productos y llega a tus clientes con la garantía de Cosmos.
               </p>
               <Link
-                to="/registro"
+                to="/onboard"
                 className="self-start inline-flex items-center gap-2 px-5 py-2.5 font-medium text-cosmos-accent hover:text-cosmos-accent-hover transition-colors"
               >
                 Empezar a vender
@@ -276,7 +291,6 @@ export function Landing() {
         </div>
       </section>
 
-      {/* Protección */}
       <section className="py-24 bg-cosmos-bg">
         <div className="w-full max-w-[1200px] mx-auto px-6">
           <span className="block mb-2 text-xs font-semibold uppercase tracking-wider text-cosmos-accent">
@@ -324,7 +338,6 @@ export function Landing() {
         </div>
       </section>
 
-      {/* CTA final */}
       <section className="py-24 bg-gradient-to-b from-cosmos-surface to-cosmos-bg border-t border-cosmos-border">
         <div className="w-full max-w-[720px] mx-auto px-6 text-center">
           <h2 className="font-display font-semibold text-cosmos-text text-[clamp(1.5rem,3vw,2.25rem)] m-0 mb-4">
@@ -335,7 +348,7 @@ export function Landing() {
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Link
-              to="/registro"
+              to="/onboard"
               className="inline-flex items-center justify-center px-8 py-4 font-semibold bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover transition-all shadow-lg"
             >
               Crear cuenta

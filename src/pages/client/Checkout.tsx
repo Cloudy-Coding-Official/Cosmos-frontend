@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Shield, CreditCard, Truck, ChevronRight } from "lucide-react";
 import { CART_ITEMS, getCartSubtotal, getCartFee, getCartTotal } from "../../data/cart";
+import { addOrder } from "../../data/orders";
 
 const PASOS = [
   { id: 1, label: "Envío", icon: Truck },
@@ -49,8 +50,17 @@ export function Checkout() {
   const handleConfirmar = async () => {
     setEnviando(true);
     await new Promise((r) => setTimeout(r, 1500));
+    const direccion = `${datos.direccion}, ${datos.ciudad}, ${datos.codigoPostal}, ${datos.pais}`;
+    const order = addOrder({
+      fecha: new Date().toISOString(),
+      monto: total,
+      items: CART_ITEMS.map((i) => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity })),
+      estado: "comprado",
+      tienda: "Tienda Cosmos",
+      direccionEnvio: direccion,
+    });
     setEnviando(false);
-    navigate("/checkout/exito", { state: { total } });
+    navigate("/perfil/compras/" + order.id);
   };
 
   return (
@@ -245,7 +255,7 @@ export function Checkout() {
                   <span className="text-cosmos-text">US$ {subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-cosmos-muted">Protección (1% + $0.10)</span>
+                  <span className="text-cosmos-muted">Servicio</span>
                   <span className="text-cosmos-text">US$ {fee.toFixed(2)}</span>
                 </div>
               </div>

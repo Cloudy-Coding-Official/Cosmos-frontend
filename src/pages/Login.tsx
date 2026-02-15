@@ -1,13 +1,19 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { AuthProviders } from "../components/AuthProviders";
+import { AuthLayout } from "../components/AuthLayout";
+import { useAuth } from "../context/AuthContext";
 
 export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    login();
+    navigate("/perfil");
   };
 
   const handleGoogle = () => {
@@ -19,8 +25,8 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-72px-200px)] flex items-center justify-center py-12 px-6 bg-cosmos-bg">
-      <div className="w-full max-w-[420px] p-10 bg-cosmos-surface border border-cosmos-border rounded-xl shadow-xl">
+    <AuthLayout>
+      <div className="p-10 bg-cosmos-surface border border-cosmos-border rounded-xl shadow-xl">
         <h1 className="font-display text-[1.75rem] text-cosmos-text m-0 mb-1">Iniciar sesión</h1>
         <p className="text-[0.9375rem] text-cosmos-muted m-0 mb-6">Accede a tu cuenta de Cosmos</p>
 
@@ -67,9 +73,9 @@ export function Login() {
         <AuthProviders mode="login" onGoogle={handleGoogle} onWallet={handleWallet} />
 
         <p className="mt-6 pt-6 border-t border-cosmos-border text-[0.9375rem] text-cosmos-muted text-center m-0">
-          ¿No tienes cuenta? <Link to="/registro" className="text-cosmos-accent font-medium hover:text-cosmos-accent-hover">Regístrate</Link>
+          ¿No tienes cuenta? <Link to="/onboard" className="text-cosmos-accent font-medium hover:text-cosmos-accent-hover">Crear cuenta</Link>
         </p>
       </div>
-    </div>
+    </AuthLayout>
   );
 }

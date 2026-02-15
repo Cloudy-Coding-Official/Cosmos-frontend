@@ -70,7 +70,7 @@ export function Cart() {
                   <span className="text-cosmos-text">US$ {subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm py-2">
-                  <span className="text-cosmos-muted">Protección Cosmos (1% + $0.10)</span>
+                  <span className="text-cosmos-muted">Servicio</span>
                   <span className="text-cosmos-text">US$ {fee.toFixed(2)}</span>
                 </div>
                 <div className="h-px bg-cosmos-border my-2" />
