@@ -1,27 +1,89 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { AuthProviders } from "../components/AuthProviders";
 import { AuthLayout } from "../components/AuthLayout";
 import { useAuth } from "../context/AuthContext";
+import { useStellarWallet } from "../context/StellarWalletContext";
+import * as authApi from "../api/auth";
+import { getErrorMessage } from "../api/client";
 
 export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login } = useAuth();
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [stellarLoginLoading, setStellarLoginLoading] = useState(false);
+  const stellarLoginInProgress = useRef(false);
+  const { setUser, login } = useAuth();
+  const stellar = useStellarWallet();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    login();
-    navigate("/perfil");
+    setError("");
+    setLoading(true);
+    try {
+      const res = await authApi.login({ email, password });
+      setUser(res.user);
+      login(res.user.hasProviderProfile ? "proveedor" : res.user.hasStoreProfile ? "retailer" : "comprador");
+      navigate("/perfil");
+    } catch (err) {
+      setError(getErrorMessage(err, "Error al iniciar sesión"));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGoogle = () => {
-    // TODO: integrar OAuth Google
+    setError("");
+    setError("No implementado");
   };
 
-  const handleWallet = () => {
-    // TODO: integrar conexión wallet
+  const handleStellarLogin = async () => {
+    if (!stellar.address) return;
+    if (stellarLoginInProgress.current) return;
+    stellarLoginInProgress.current = true;
+    setError("");
+    setStellarLoginLoading(true);
+    try {
+      const { message } = await authApi.getWalletNonce(stellar.address);
+      const signature = await stellar.signMessage(message);
+      if (!signature) {
+        setError("Tu wallet no permite firmar mensajes para iniciar sesión. Probá con Freighter o xBull.");
+        return;
+      }
+      const res = await authApi.walletVerify({
+        address: stellar.address,
+        signature,
+      });
+      setUser(res.user);
+      const hasAnyProfile =
+        res.user.hasBuyerProfile || res.user.hasStoreProfile || res.user.hasProviderProfile;
+      if (!hasAnyProfile) {
+        login("comprador");
+        navigate("/onboard?from=wallet");
+        return;
+      }
+      login(
+        res.user.hasProviderProfile ? "proveedor" : res.user.hasStoreProfile ? "retailer" : "comprador"
+      );
+      navigate("/perfil");
+    } catch (err) {
+      const apiErr = err as { message?: string };
+      if (apiErr.message === "WALLET_NEEDS_ONBOARDING") {
+        sessionStorage.setItem("cosmos_wallet_onboarding_address", stellar.address);
+        navigate("/onboard?from=wallet");
+        return;
+      }
+      let msg = getErrorMessage(err, "Error al iniciar sesión con la wallet");
+      if (/rejected|rechazad/i.test(msg)) {
+        msg = "La wallet canceló la firma. Probá de nuevo y tocá «Confirm» en el popup de Freighter.";
+      }
+      setError(msg);
+    } finally {
+      setStellarLoginLoading(false);
+      stellarLoginInProgress.current = false;
+    }
   };
 
   return (
@@ -29,6 +91,12 @@ export function Login() {
       <div className="p-10 bg-cosmos-surface border border-cosmos-border rounded-xl shadow-xl">
         <h1 className="font-display text-[1.75rem] text-cosmos-text m-0 mb-1">Iniciar sesión</h1>
         <p className="text-[0.9375rem] text-cosmos-muted m-0 mb-6">Accede a tu cuenta de Cosmos</p>
+
+        {error && (
+          <div className="mb-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-sm text-red-400">
+            {error}
+          </div>
+        )}
 
         <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
           <label className="flex flex-col gap-1.5">
@@ -59,8 +127,12 @@ export function Login() {
             </label>
             <Link to="/restablecer-contraseña" className="text-sm text-cosmos-accent font-medium hover:text-cosmos-accent-hover">¿Olvidaste tu contraseña?</Link>
           </div>
-          <button type="submit" className="w-full mt-2 px-6 py-3.5 font-medium bg-cosmos-accent text-cosmos-bg border-0 rounded-lg hover:bg-cosmos-accent-hover transition-colors cursor-pointer shadow-lg">
-            Entrar
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full mt-2 px-6 py-3.5 font-medium bg-cosmos-accent text-cosmos-bg border-0 rounded-lg hover:bg-cosmos-accent-hover transition-colors cursor-pointer shadow-lg disabled:opacity-60"
+          >
+            {loading ? "Entrando…" : "Entrar"}
           </button>
         </form>
 
@@ -70,7 +142,12 @@ export function Login() {
           <span className="flex-1 h-px bg-cosmos-border" />
         </div>
 
-        <AuthProviders mode="login" onGoogle={handleGoogle} onWallet={handleWallet} />
+        <AuthProviders
+          mode="login"
+          onGoogle={handleGoogle}
+          onStellarLogin={handleStellarLogin}
+          stellarLoginLoading={stellarLoginLoading}
+        />
 
         <p className="mt-6 pt-6 border-t border-cosmos-border text-[0.9375rem] text-cosmos-muted text-center m-0">
           ¿No tienes cuenta? <Link to="/onboard" className="text-cosmos-accent font-medium hover:text-cosmos-accent-hover">Crear cuenta</Link>
