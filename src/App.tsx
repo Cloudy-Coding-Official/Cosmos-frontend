@@ -55,14 +55,14 @@ export default function App() {
           <Route path="cosmos-founding" element={<CosmosFounding />} />
           <Route path="vender" element={<Vender />} />
           <Route path="vender/sin-stock" element={<VenderSinStock />} />
-          <Route path="proveedores" element={<ProtectedRoute allowedRoles={["proveedor"]} />}>
+          <Route path="proveedores" element={<ProtectedRoute allowedRoles={["proveedor"]} allowPreview />}>
             <Route index element={<ProveedoresDashboard />} />
             <Route path="productos" element={<ProveedoresProductos />} />
             <Route path="perfil" element={<ProveedoresPerfil />} />
             <Route path="retailers" element={<ProveedoresRetailers />} />
             <Route path="ventas" element={<ProveedoresVentas />} />
           </Route>
-          <Route path="retailer" element={<ProtectedRoute allowedRoles={["retailer"]} />}>
+          <Route path="retailer" element={<ProtectedRoute allowedRoles={["retailer"]} allowPreview />}>
             <Route index element={<RetailerDashboard />} />
             <Route path="productos" element={<RetailerProducts />} />
             <Route path="proveedores" element={<RetailerSuppliers />} />
