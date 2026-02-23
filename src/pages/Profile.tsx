@@ -56,19 +56,24 @@ function MisCompras() {
   );
 }
 
-const MOCK_USER = {
-  name: "María García",
-  email: "maria@ejemplo.com",
-  role: "both" as "buyer" | "seller" | "both",
-  memberSince: "Marzo 2025",
-};
+function displayNameFromEmail(email: string | null): string {
+  if (!email) return "Usuario";
+  const part = email.split("@")[0];
+  return part ? part.charAt(0).toUpperCase() + part.slice(1) : "Usuario";
+}
 
 export function Profile() {
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState(MOCK_USER.name);
-  const [email, setEmail] = useState(MOCK_USER.email);
-  const { isLoggedIn, logout } = useAuth();
+  const { user, isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
+
+  const email = user?.email ?? "";
+  const [name, setName] = useState("");
+  const memberSince = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString("es-AR", { month: "long", year: "numeric" })
+    : "";
+
+  const displayName = displayNameFromEmail(user?.email ?? null);
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,16 +126,21 @@ export function Profile() {
               {!isEditing ? (
                 <>
                   <h2 className="font-display font-semibold text-cosmos-text text-xl m-0 mb-1">
-                    {name}
+                    {displayName}
                   </h2>
                   <p className="text-cosmos-muted text-sm m-0 mb-4 flex items-center gap-2">
                     <Mail size={16} className="shrink-0" />
-                    {email}
+                    {email || "—"}
                   </p>
-                  <p className="text-xs text-cosmos-muted m-0">Miembro desde {MOCK_USER.memberSince}</p>
+                  {memberSince && (
+                    <p className="text-xs text-cosmos-muted m-0">Miembro desde {memberSince}</p>
+                  )}
                   <button
                     type="button"
-                    onClick={() => setIsEditing(true)}
+                    onClick={() => {
+                      setName(displayName);
+                      setIsEditing(true);
+                    }}
                     className="mt-4 px-5 py-2.5 text-sm font-medium text-cosmos-accent hover:text-cosmos-accent-hover border border-cosmos-accent/50 rounded-xl hover:bg-cosmos-accent-soft transition-all"
                   >
                     Editar perfil
@@ -156,9 +166,10 @@ export function Profile() {
                     <input
                       type="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-4 py-3 border border-cosmos-border bg-cosmos-surface-elevated text-cosmos-text rounded-xl focus:outline-none focus:border-cosmos-accent focus:ring-2 focus:ring-cosmos-accent/20 transition-all"
+                      readOnly
+                      className="w-full px-4 py-3 border border-cosmos-border bg-cosmos-surface-elevated text-cosmos-text rounded-xl opacity-80 cursor-not-allowed"
                     />
+                    <p className="text-xs text-cosmos-muted mt-1">El correo es el de tu sesión y no se puede editar aquí.</p>
                   </label>
                   <div className="flex gap-3">
                     <button
@@ -171,8 +182,7 @@ export function Profile() {
                       type="button"
                       onClick={() => {
                         setIsEditing(false);
-                        setName(MOCK_USER.name);
-                        setEmail(MOCK_USER.email);
+                        setName("");
                       }}
                       className="px-5 py-2.5 font-medium text-cosmos-muted border border-cosmos-border rounded-xl hover:bg-cosmos-surface-elevated transition-colors"
                     >
@@ -246,18 +256,23 @@ export function Profile() {
             Cuenta
           </h3>
           <div className="flex flex-wrap gap-2 mb-4">
-            {(MOCK_USER.role === "buyer" || MOCK_USER.role === "both") && (
+            {user?.hasBuyerProfile && (
               <span className="px-4 py-2 text-sm font-medium bg-cosmos-accent-soft text-cosmos-accent rounded-xl border border-cosmos-accent/20">
                 Comprador
               </span>
             )}
-            {(MOCK_USER.role === "seller" || MOCK_USER.role === "both") && (
+            {user?.hasStoreProfile && (
               <span className="px-4 py-2 text-sm font-medium bg-cosmos-accent-soft text-cosmos-accent rounded-xl border border-cosmos-accent/20">
-                Vendedor
+                Retailer / Tienda
+              </span>
+            )}
+            {user?.hasProviderProfile && (
+              <span className="px-4 py-2 text-sm font-medium bg-cosmos-accent-soft text-cosmos-accent rounded-xl border border-cosmos-accent/20">
+                Proveedor
               </span>
             )}
           </div>
-          {(MOCK_USER.role === "seller" || MOCK_USER.role === "both") && (
+          {(user?.hasStoreProfile || user?.hasProviderProfile) && (
             <Link
               to="/retailer"
               className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-cosmos-text border border-cosmos-border rounded-xl hover:border-cosmos-accent hover:text-cosmos-accent hover:bg-cosmos-surface-elevated transition-all"

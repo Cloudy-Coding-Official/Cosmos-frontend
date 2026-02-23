@@ -26,11 +26,13 @@ export function Onboard() {
   const [role, setRole] = useState<OnboardRole | null>(
     roleParam && ["comprador", "retailer", "proveedor"].includes(roleParam) ? roleParam : null
   );
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [country, setCountry] = useState("");
+  const [taxId, setTaxId] = useState("");
   const [finishError, setFinishError] = useState("");
   const [finishLoading, setFinishLoading] = useState(false);
   const { login, setUser } = useAuth();
@@ -67,15 +69,18 @@ export function Onboard() {
           setFinishError("Tu wallet no permitió firmar. Probá de nuevo y confirmá en el popup.");
           return;
         }
+        const countryCode = country && country.length === 2 ? country : undefined;
         const res = await authApi.registerWithWallet({
           email,
           password,
           address: walletAddress,
           signature,
-          country: country || undefined,
+          country: countryCode,
+          firstName: firstName.trim() || undefined,
+          lastName: lastName.trim() || undefined,
           role: role ?? "comprador",
-          businessName: needsBusinessStep ? businessName : undefined,
-          taxId: role === "proveedor" ? undefined : undefined,
+          businessName: needsBusinessStep ? businessName.trim() || undefined : undefined,
+          taxId: role === "proveedor" ? (taxId.trim() || undefined) : undefined,
         });
         sessionStorage.removeItem(WALLET_ONBOARDING_KEY);
         setUser(res.user);
@@ -92,15 +97,35 @@ export function Onboard() {
       }
       return;
     }
-    login(role || "comprador");
-    if (role === "retailer") navigate("/retailer");
-    else if (role === "proveedor") navigate("/proveedores");
-    else navigate("/perfil");
+
+    setFinishError("");
+    setFinishLoading(true);
+    try {
+      const countryCode = country && country.length === 2 ? country : undefined;
+      const res = await authApi.register({
+        email,
+        password,
+        firstName: firstName.trim() || undefined,
+        lastName: lastName.trim() || undefined,
+        country: countryCode,
+      });
+      setUser(res.user);
+      login(
+        res.user.hasProviderProfile ? "proveedor" : res.user.hasStoreProfile ? "retailer" : "comprador"
+      );
+      if (role === "retailer") navigate("/retailer");
+      else if (role === "proveedor") navigate("/proveedores");
+      else navigate("/perfil");
+    } catch (err) {
+      setFinishError(getErrorMessage(err, "Error al crear la cuenta"));
+    } finally {
+      setFinishLoading(false);
+    }
   };
 
   const canProceed = () => {
     if (step === 1) return role !== null;
-    if (step === 2) return name.trim() && email.trim() && password.length >= 8;
+    if (step === 2) return firstName.trim() && lastName.trim() && email.trim() && password.length >= 8;
     if (step === 3 && needsBusinessStep) return businessName.trim();
     return true;
   };
@@ -210,8 +235,12 @@ export function Onboard() {
               <h2 className="font-display font-semibold text-cosmos-text text-lg m-0 mb-4">Tus datos</h2>
               <form className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); handleNext(); }}>
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-xs font-medium uppercase tracking-wider text-cosmos-muted">Nombre completo</span>
-                  <input type="text" className={inputBase} value={name} onChange={(e) => setName(e.target.value)} placeholder="Tu nombre" required />
+                  <span className="text-xs font-medium uppercase tracking-wider text-cosmos-muted">Nombre</span>
+                  <input type="text" className={inputBase} value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Ej: Juan" required />
+                </label>
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-xs font-medium uppercase tracking-wider text-cosmos-muted">Apellido</span>
+                  <input type="text" className={inputBase} value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Ej: García" required />
                 </label>
                 <label className="flex flex-col gap-1.5">
                   <span className="text-xs font-medium uppercase tracking-wider text-cosmos-muted">Correo electrónico</span>
@@ -220,6 +249,25 @@ export function Onboard() {
                 <label className="flex flex-col gap-1.5">
                   <span className="text-xs font-medium uppercase tracking-wider text-cosmos-muted">Contraseña</span>
                   <input type="password" className={inputBase} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 8 caracteres" required minLength={8} />
+                </label>
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-xs font-medium uppercase tracking-wider text-cosmos-muted">País</span>
+                  <select className={inputBase} value={country} onChange={(e) => setCountry(e.target.value)}>
+                    <option value="">Seleccionar país</option>
+                    <option value="AR">Argentina</option>
+                    <option value="MX">México</option>
+                    <option value="CO">Colombia</option>
+                    <option value="CL">Chile</option>
+                    <option value="PE">Perú</option>
+                    <option value="EC">Ecuador</option>
+                    <option value="UY">Uruguay</option>
+                    <option value="PY">Paraguay</option>
+                    <option value="BO">Bolivia</option>
+                    <option value="US">Estados Unidos</option>
+                    <option value="ES">España</option>
+                    <option value="BR">Brasil</option>
+                    <option value="XX">Otro</option>
+                  </select>
                 </label>
               </form>
             </div>
@@ -238,9 +286,30 @@ export function Onboard() {
                   </span>
                   <input type="text" className={inputBase} value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder={role === "retailer" ? "Ej: Mi Tienda" : "Ej: Distribuidora XYZ"} required />
                 </label>
+                {role === "proveedor" && (
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-xs font-medium uppercase tracking-wider text-cosmos-muted">CUIT / RFC / Tax ID</span>
+                    <input type="text" className={inputBase} value={taxId} onChange={(e) => setTaxId(e.target.value)} placeholder="Ej: 20-12345678-9" />
+                  </label>
+                )}
                 <label className="flex flex-col gap-1.5">
                   <span className="text-xs font-medium uppercase tracking-wider text-cosmos-muted">País</span>
-                  <input type="text" className={inputBase} value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Argentina" />
+                  <select className={inputBase} value={country} onChange={(e) => setCountry(e.target.value)}>
+                    <option value="">Seleccionar país</option>
+                    <option value="AR">Argentina</option>
+                    <option value="MX">México</option>
+                    <option value="CO">Colombia</option>
+                    <option value="CL">Chile</option>
+                    <option value="PE">Perú</option>
+                    <option value="EC">Ecuador</option>
+                    <option value="UY">Uruguay</option>
+                    <option value="PY">Paraguay</option>
+                    <option value="BO">Bolivia</option>
+                    <option value="US">Estados Unidos</option>
+                    <option value="ES">España</option>
+                    <option value="BR">Brasil</option>
+                    <option value="XX">Otro</option>
+                  </select>
                 </label>
               </div>
             </div>
@@ -277,12 +346,22 @@ export function Onboard() {
                   <div className="w-16 h-16 rounded-2xl bg-cosmos-accent-soft flex items-center justify-center mx-auto mb-4">
                     <Check size={32} className="text-cosmos-accent" />
                   </div>
-                  <h2 className="font-display font-semibold text-cosmos-text text-lg m-0 mb-2">¡Cuenta creada!</h2>
-                  <p className="text-cosmos-muted text-sm m-0 mb-6">
-                    Vas a ser redirigido a tu {role === "comprador" ? "perfil" : role === "retailer" ? "dashboard de retailer" : "panel de proveedores"}.
+                  <h2 className="font-display font-semibold text-cosmos-text text-lg m-0 mb-2">Crear cuenta</h2>
+                  <p className="text-cosmos-muted text-sm m-0 mb-4">
+                    Al continuar se creará tu cuenta con los datos que ingresaste.
                   </p>
-                  <button type="button" onClick={handleFinish} className="w-full px-6 py-3.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover transition-colors">
-                    Continuar
+                  {finishError && (
+                    <div className="mb-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-sm text-red-400 text-left">
+                      {finishError}
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleFinish}
+                    disabled={finishLoading}
+                    className="w-full px-6 py-3.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover transition-colors disabled:opacity-60"
+                  >
+                    {finishLoading ? "Creando cuenta…" : "Crear cuenta"}
                   </button>
                 </>
               )}

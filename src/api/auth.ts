@@ -35,6 +35,8 @@ export type AuthResponse = {
 export async function register(data: {
   email: string;
   password: string;
+  firstName?: string;
+  lastName?: string;
   country?: string;
 }): Promise<AuthResponse> {
   const res = await apiRequest<AuthResponse>("/auth/register", {
@@ -93,6 +95,8 @@ export type RegisterWithWalletPayload = {
   address: string;
   signature: string;
   country?: string;
+  firstName?: string;
+  lastName?: string;
   role?: "comprador" | "retailer" | "proveedor";
   businessName?: string;
   taxId?: string;
