@@ -12,7 +12,7 @@ function formatAddress(addr: string): string {
 }
 
 export function ProfileWallet() {
-  const { user, isLoggedIn, refreshUser } = useAuth();
+  const { user, refreshUser } = useAuth();
   const stellar = useStellarWallet();
   const [linking, setLinking] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,26 +60,6 @@ export function ProfileWallet() {
       setLinking(false);
     }
   };
-
-  if (!isLoggedIn) {
-    return (
-      <div className="py-8 bg-cosmos-bg min-h-[calc(100vh-72px-200px)]">
-        <div className="w-full max-w-[600px] mx-auto px-6 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-cosmos-accent-soft flex items-center justify-center mx-auto mb-6">
-            <Wallet size={32} className="text-cosmos-accent" />
-          </div>
-          <h1 className="font-display font-semibold text-cosmos-text text-2xl m-0 mb-4">Iniciá sesión para ver tu wallet</h1>
-          <p className="text-cosmos-muted mb-8">Tu wallet vinculada se muestra en tu perfil una vez que hayas iniciado sesión.</p>
-          <Link
-            to="/login"
-            className="inline-flex items-center gap-2 px-6 py-3 font-medium bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover transition-colors"
-          >
-            Iniciar sesión
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="py-8 bg-cosmos-bg min-h-[calc(100vh-72px-200px)]">
