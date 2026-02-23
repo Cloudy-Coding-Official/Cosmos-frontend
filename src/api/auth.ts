@@ -70,6 +70,28 @@ export async function googleAuth(data: { idToken: string; country?: string }): P
   return res;
 }
 
+export type RegisterWithGooglePayload = {
+  idToken: string;
+  email: string;
+  password: string;
+  country?: string;
+  firstName?: string;
+  lastName?: string;
+  role?: "comprador" | "retailer" | "proveedor";
+  businessName?: string;
+  taxId?: string;
+};
+
+export async function registerWithGoogle(data: RegisterWithGooglePayload): Promise<AuthResponse> {
+  const res = await apiRequest<AuthResponse>("/auth/google/register", {
+    method: "POST",
+    body: JSON.stringify(data),
+    skipAuth: true,
+  });
+  setTokens(res.tokens.accessToken, res.tokens.refreshToken);
+  return res;
+}
+
 export async function getWalletNonce(address: string): Promise<{ address: string; nonce: string; message: string }> {
   return apiRequest(`/auth/wallet/nonce?address=${encodeURIComponent(address)}`, {
     method: "GET",
