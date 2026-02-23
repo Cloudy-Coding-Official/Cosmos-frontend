@@ -1,11 +1,13 @@
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { ShoppingBag, Store, Package, ChevronRight, ChevronLeft, Check } from "lucide-react";
 import { AuthLayout } from "../components/AuthLayout";
 import { useAuth } from "../context/AuthContext";
 import { useStellarWallet } from "../context/StellarWalletContext";
+import { useGoogleSignIn } from "../hooks/useGoogleSignIn";
 import * as authApi from "../api/auth";
 import { getErrorMessage } from "../api/client";
+import type { RegisterWithGooglePayload } from "../api/auth";
 
 export type OnboardRole = "comprador" | "retailer" | "proveedor";
 
@@ -22,6 +24,7 @@ export function Onboard() {
   const [searchParams] = useSearchParams();
   const roleParam = searchParams.get("role") as OnboardRole | null;
   const fromWallet = searchParams.get("from") === "wallet";
+  const fromGoogle = searchParams.get("from") === "google";
   const [step, setStep] = useState(1);
   const [role, setRole] = useState<OnboardRole | null>(
     roleParam && ["comprador", "retailer", "proveedor"].includes(roleParam) ? roleParam : null
@@ -35,9 +38,36 @@ export function Onboard() {
   const [taxId, setTaxId] = useState("");
   const [finishError, setFinishError] = useState("");
   const [finishLoading, setFinishLoading] = useState(false);
+  const pendingGoogleRef = useRef<Omit<RegisterWithGooglePayload, "idToken"> | null>(null);
   const { login, setUser } = useAuth();
   const stellar = useStellarWallet();
   const navigate = useNavigate();
+
+  const handleGoogleCredentialForRegister = useCallback(
+    async (idToken: string) => {
+      const data = pendingGoogleRef.current;
+      if (!data) return;
+      pendingGoogleRef.current = null;
+      setFinishError("");
+      try {
+        const res = await authApi.registerWithGoogle({ idToken, ...data });
+        setUser(res.user);
+        login(
+          res.user.hasProviderProfile ? "proveedor" : res.user.hasStoreProfile ? "retailer" : "comprador"
+        );
+        if (data.role === "retailer") navigate("/retailer");
+        else if (data.role === "proveedor") navigate("/proveedores");
+        else navigate("/perfil");
+      } catch (err) {
+        setFinishError(getErrorMessage(err, "Error al crear la cuenta"));
+      } finally {
+        setFinishLoading(false);
+      }
+    },
+    [setUser, login, navigate]
+  );
+
+  const { triggerSignIn: triggerGoogleSignIn, isReady: googleReady } = useGoogleSignIn(handleGoogleCredentialForRegister);
 
   const needsBusinessStep = role === "retailer" || role === "proveedor";
   const totalSteps = needsBusinessStep ? 4 : 3;
@@ -95,6 +125,27 @@ export function Onboard() {
       } finally {
         setFinishLoading(false);
       }
+      return;
+    }
+
+    if (fromGoogle) {
+      if (!googleReady) {
+        setFinishError("Google Sign-In aún no está listo. Esperá un momento y probá de nuevo.");
+        return;
+      }
+      setFinishError("");
+      setFinishLoading(true);
+      pendingGoogleRef.current = {
+        email,
+        password,
+        country: country && country.length === 2 ? country : undefined,
+        firstName: firstName.trim() || undefined,
+        lastName: lastName.trim() || undefined,
+        role: role ?? "comprador",
+        businessName: needsBusinessStep ? businessName.trim() || undefined : undefined,
+        taxId: role === "proveedor" ? (taxId.trim() || undefined) : undefined,
+      };
+      triggerGoogleSignIn();
       return;
     }
 
@@ -339,6 +390,29 @@ export function Onboard() {
                     className="w-full px-6 py-3.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover transition-colors disabled:opacity-60"
                   >
                     {finishLoading ? "Creando cuenta…" : "Crear cuenta"}
+                  </button>
+                </>
+              ) : fromGoogle ? (
+                <>
+                  <div className="w-16 h-16 rounded-2xl bg-cosmos-accent-soft flex items-center justify-center mx-auto mb-4">
+                    <Check size={32} className="text-cosmos-accent" />
+                  </div>
+                  <h2 className="font-display font-semibold text-cosmos-text text-lg m-0 mb-2">Completar registro con Google</h2>
+                  <p className="text-cosmos-muted text-sm m-0 mb-4">
+                    Al continuar se abrirá Google para confirmar tu cuenta. Se creará tu perfil con los datos ingresados y se vinculará tu cuenta de Google.
+                  </p>
+                  {finishError && (
+                    <div className="mb-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-sm text-red-400 text-left">
+                      {finishError}
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleFinish}
+                    disabled={finishLoading || !googleReady}
+                    className="w-full px-6 py-3.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover transition-colors disabled:opacity-60"
+                  >
+                    {finishLoading ? "Creando cuenta…" : "Continuar con Google y crear cuenta"}
                   </button>
                 </>
               ) : (
