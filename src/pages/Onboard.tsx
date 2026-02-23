@@ -67,7 +67,7 @@ export function Onboard() {
     [setUser, login, navigate]
   );
 
-  const { triggerSignIn: triggerGoogleSignIn, isReady: googleReady } = useGoogleSignIn(handleGoogleCredentialForRegister);
+  const { triggerSignIn: triggerGoogleSignIn, isReady: googleReady, buttonContainerRef } = useGoogleSignIn(handleGoogleCredentialForRegister);
 
   const needsBusinessStep = role === "retailer" || role === "proveedor";
   const totalSteps = needsBusinessStep ? 4 : 3;
@@ -186,6 +186,13 @@ export function Onboard() {
 
   return (
     <AuthLayout wide>
+      {fromGoogle && googleReady && (
+        <div
+          ref={buttonContainerRef}
+          className="absolute left-[-9999px] w-[240px] h-[48px] overflow-hidden"
+          aria-hidden
+        />
+      )}
       <div className="w-full max-w-[480px] mx-auto">
         <div className="mb-8">
           <h1 className="font-display text-[1.5rem] text-cosmos-text m-0 mb-1">Crear cuenta en Cosmos</h1>
