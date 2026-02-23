@@ -87,6 +87,27 @@ export async function walletVerify(data: {
   return res;
 }
 
+export type RegisterWithWalletPayload = {
+  email: string;
+  password: string;
+  address: string;
+  signature: string;
+  country?: string;
+  role?: "comprador" | "retailer" | "proveedor";
+  businessName?: string;
+  taxId?: string;
+};
+
+export async function registerWithWallet(data: RegisterWithWalletPayload): Promise<AuthResponse> {
+  const res = await apiRequest<AuthResponse>("/auth/wallet/register", {
+    method: "POST",
+    body: JSON.stringify(data),
+    skipAuth: true,
+  });
+  setTokens(res.tokens.accessToken, res.tokens.refreshToken);
+  return res;
+}
+
 export async function linkWallet(data: {
   address: string;
   signature: string;
