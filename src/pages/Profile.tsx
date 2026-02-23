@@ -4,6 +4,8 @@ import { WalletSummary } from "../components/WalletSummary";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { getOrders } from "../data/orders";
+import * as authApi from "../api/auth";
+import { getErrorMessage } from "../api/client";
 
 function MisCompras() {
   const orders = getOrders();
@@ -62,22 +64,48 @@ function displayNameFromEmail(email: string | null): string {
   return part ? part.charAt(0).toUpperCase() + part.slice(1) : "Usuario";
 }
 
+function fullDisplayName(
+  firstName: string | null | undefined,
+  lastName: string | null | undefined,
+  email: string | null
+): string {
+  const full = [firstName, lastName].filter(Boolean).join(" ").trim();
+  return full || displayNameFromEmail(email);
+}
+
 export function Profile() {
   const [isEditing, setIsEditing] = useState(false);
-  const { user, isLoggedIn, logout } = useAuth();
+  const [saveError, setSaveError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const { user, isLoggedIn, logout, setUser, refreshUser } = useAuth();
   const navigate = useNavigate();
 
   const email = user?.email ?? "";
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState(user?.firstName ?? "");
+  const [lastName, setLastName] = useState(user?.lastName ?? "");
   const memberSince = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString("es-AR", { month: "long", year: "numeric" })
     : "";
 
-  const displayName = displayNameFromEmail(user?.email ?? null);
+  const displayName = fullDisplayName(user?.firstName, user?.lastName, user?.email ?? null);
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsEditing(false);
+    setSaveError("");
+    setSaving(true);
+    try {
+      const updated = await authApi.updateProfile({
+        firstName: firstName.trim() || undefined,
+        lastName: lastName.trim() || undefined,
+      });
+      setUser(updated);
+      await refreshUser();
+      setIsEditing(false);
+    } catch (err) {
+      setSaveError(getErrorMessage(err, "No se pudo guardar el perfil"));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleLogout = () => {
@@ -138,7 +166,9 @@ export function Profile() {
                   <button
                     type="button"
                     onClick={() => {
-                      setName(displayName);
+                      setFirstName(user?.firstName ?? "");
+                      setLastName(user?.lastName ?? "");
+                      setSaveError("");
                       setIsEditing(true);
                     }}
                     className="mt-4 px-5 py-2.5 text-sm font-medium text-cosmos-accent hover:text-cosmos-accent-hover border border-cosmos-accent/50 rounded-xl hover:bg-cosmos-accent-soft transition-all"
@@ -148,15 +178,33 @@ export function Profile() {
                 </>
               ) : (
                 <form onSubmit={handleSaveProfile} className="space-y-4">
+                  {saveError && (
+                    <div className="px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-sm text-red-400">
+                      {saveError}
+                    </div>
+                  )}
                   <label className="block">
                     <span className="text-xs font-medium uppercase tracking-wider text-cosmos-muted block mb-1.5">
                       Nombre
                     </span>
                     <input
                       type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
                       className="w-full px-4 py-3 border border-cosmos-border bg-cosmos-surface-elevated text-cosmos-text rounded-xl focus:outline-none focus:border-cosmos-accent focus:ring-2 focus:ring-cosmos-accent/20 transition-all"
+                      placeholder="Ej: Juan"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs font-medium uppercase tracking-wider text-cosmos-muted block mb-1.5">
+                      Apellido
+                    </span>
+                    <input
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      className="w-full px-4 py-3 border border-cosmos-border bg-cosmos-surface-elevated text-cosmos-text rounded-xl focus:outline-none focus:border-cosmos-accent focus:ring-2 focus:ring-cosmos-accent/20 transition-all"
+                      placeholder="Ej: García"
                     />
                   </label>
                   <label className="block">
@@ -174,17 +222,21 @@ export function Profile() {
                   <div className="flex gap-3">
                     <button
                       type="submit"
-                      className="px-5 py-2.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover transition-colors"
+                      disabled={saving}
+                      className="px-5 py-2.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover transition-colors disabled:opacity-60"
                     >
-                      Guardar
+                      {saving ? "Guardando…" : "Guardar"}
                     </button>
                     <button
                       type="button"
                       onClick={() => {
                         setIsEditing(false);
-                        setName("");
+                        setFirstName(user?.firstName ?? "");
+                        setLastName(user?.lastName ?? "");
+                        setSaveError("");
                       }}
-                      className="px-5 py-2.5 font-medium text-cosmos-muted border border-cosmos-border rounded-xl hover:bg-cosmos-surface-elevated transition-colors"
+                      disabled={saving}
+                      className="px-5 py-2.5 font-medium text-cosmos-muted border border-cosmos-border rounded-xl hover:bg-cosmos-surface-elevated transition-colors disabled:opacity-60"
                     >
                       Cancelar
                     </button>
