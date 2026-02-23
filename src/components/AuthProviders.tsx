@@ -19,11 +19,13 @@ function GoogleIcon({ className }: { className?: string }) {
 export function AuthProviders({
   mode,
   onGoogle,
+  googleLoading,
   onStellarLogin,
   stellarLoginLoading
 }: {
   mode: "login" | "register";
   onGoogle?: () => void;
+  googleLoading?: boolean;
   onStellarLogin?: () => Promise<void>;
   stellarLoginLoading?: boolean;
 }) {
@@ -32,9 +34,14 @@ export function AuthProviders({
 
   return (
     <div className="flex flex-col gap-3">
-      <button type="button" className={btnBase} onClick={onGoogle}>
+      <button
+        type="button"
+        className={btnBase}
+        onClick={onGoogle}
+        disabled={!onGoogle || googleLoading}
+      >
         <GoogleIcon className="shrink-0 w-5 h-5" />
-        {googleLabel}
+        {googleLoading ? "Iniciando sesión…" : googleLabel}
       </button>
       
       {stellar.address ? (
