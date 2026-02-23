@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { User, Mail, Shield, Store, LogOut, Key, ShoppingBag, Sparkles, LayoutDashboard, Package, TrendingUp, Wallet, ShoppingCart } from "lucide-react";
+import { User, Mail, Shield, Store, LogOut, Key, ShoppingBag, Sparkles, LayoutDashboard, Package, TrendingUp, Wallet, ShoppingCart, X } from "lucide-react";
 import { WalletSummary } from "../components/WalletSummary";
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
@@ -162,6 +162,57 @@ export function Profile() {
     logout();
     navigate("/");
   };
+
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
+  const openPasswordModal = () => {
+    setPasswordModalOpen(true);
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordError(null);
+    setPasswordSuccess(false);
+  };
+
+  const closePasswordModal = () => {
+    setPasswordModalOpen(false);
+    setPasswordError(null);
+    setPasswordSuccess(false);
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError(null);
+    if (newPassword.length < 8) {
+      setPasswordError("La nueva contraseña debe tener al menos 8 caracteres.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("La nueva contraseña y la confirmación no coinciden.");
+      return;
+    }
+    setPasswordLoading(true);
+    try {
+      await authApi.changePassword({ currentPassword, newPassword });
+      setPasswordSuccess(true);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setTimeout(() => closePasswordModal(), 1500);
+    } catch (err) {
+      setPasswordError(getErrorMessage(err, "No se pudo cambiar la contraseña"));
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  const hasEmailPassword = user?.providers?.includes("email") ?? false;
 
   if (!isLoggedIn) {
     return (
@@ -402,13 +453,20 @@ export function Profile() {
             <Shield size={20} className="text-cosmos-accent" />
             Seguridad
           </h3>
-          <Link
-            to="/restablecer-contraseña"
-            className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-cosmos-text border border-cosmos-border rounded-xl hover:border-cosmos-accent hover:text-cosmos-accent hover:bg-cosmos-surface-elevated transition-all"
-          >
-            <Key size={18} />
-            Cambiar contraseña
-          </Link>
+          {hasEmailPassword ? (
+            <button
+              type="button"
+              onClick={openPasswordModal}
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-cosmos-text border border-cosmos-border rounded-xl hover:border-cosmos-accent hover:text-cosmos-accent hover:bg-cosmos-surface-elevated transition-all"
+            >
+              <Key size={18} />
+              Cambiar contraseña
+            </button>
+          ) : (
+            <p className="text-sm text-cosmos-muted m-0">
+              Iniciaste sesión con Google o wallet. Para usar contraseña, creá una cuenta con correo y contraseña.
+            </p>
+          )}
         </section>
 
         <div className="pt-4 border-t border-cosmos-border">
@@ -422,6 +480,95 @@ export function Profile() {
           </button>
         </div>
       </div>
+
+      {/* Modal cambiar contraseña */}
+      {passwordModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={closePasswordModal}>
+          <div
+            className="bg-cosmos-surface border border-cosmos-border rounded-2xl shadow-xl w-full max-w-md p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-display font-semibold text-cosmos-text text-lg m-0">Cambiar contraseña</h3>
+              <button
+                type="button"
+                onClick={closePasswordModal}
+                className="p-2 rounded-lg text-cosmos-muted hover:bg-cosmos-surface-elevated hover:text-cosmos-text transition-colors"
+                aria-label="Cerrar"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              {passwordError && (
+                <div className="px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-sm text-red-400">
+                  {passwordError}
+                </div>
+              )}
+              {passwordSuccess && (
+                <div className="px-4 py-3 rounded-lg bg-green-500/10 border border-green-500/30 text-sm text-green-400">
+                  Contraseña actualizada. Cerrando…
+                </div>
+              )}
+              <label className="block">
+                <span className="text-xs font-medium uppercase tracking-wider text-cosmos-muted block mb-1.5">Contraseña actual</span>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                  className="w-full px-4 py-3 border border-cosmos-border bg-cosmos-surface-elevated text-cosmos-text rounded-xl focus:outline-none focus:border-cosmos-accent focus:ring-2 focus:ring-cosmos-accent/20 transition-all"
+                  placeholder="Tu contraseña actual"
+                />
+              </label>
+              <label className="block">
+                <span className="text-xs font-medium uppercase tracking-wider text-cosmos-muted block mb-1.5">Nueva contraseña</span>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  className="w-full px-4 py-3 border border-cosmos-border bg-cosmos-surface-elevated text-cosmos-text rounded-xl focus:outline-none focus:border-cosmos-accent focus:ring-2 focus:ring-cosmos-accent/20 transition-all"
+                  placeholder="Mínimo 8 caracteres"
+                />
+              </label>
+              <label className="block">
+                <span className="text-xs font-medium uppercase tracking-wider text-cosmos-muted block mb-1.5">Confirmar nueva contraseña</span>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  className="w-full px-4 py-3 border border-cosmos-border bg-cosmos-surface-elevated text-cosmos-text rounded-xl focus:outline-none focus:border-cosmos-accent focus:ring-2 focus:ring-cosmos-accent/20 transition-all"
+                  placeholder="Repetí la nueva contraseña"
+                />
+              </label>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={closePasswordModal}
+                  disabled={passwordLoading}
+                  className="px-5 py-2.5 font-medium text-cosmos-muted border border-cosmos-border rounded-xl hover:bg-cosmos-surface-elevated transition-colors disabled:opacity-60"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={passwordLoading}
+                  className="px-5 py-2.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover transition-colors disabled:opacity-60"
+                >
+                  {passwordLoading ? "Guardando…" : "Cambiar contraseña"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
