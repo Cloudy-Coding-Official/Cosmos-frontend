@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import { TrustlessWorkProviders } from "./components/providers/TrustlessWorkProviders";
 import { Layout } from "./components/Layout";
 import { Landing } from "./pages/Landing";
 import { Login } from "./pages/Login";
@@ -34,6 +35,7 @@ import { PagePlaceholder } from "./pages/PagePlaceholder";
 export default function App() {
   return (
     <AuthProvider>
+    <TrustlessWorkProviders>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Layout />}>
@@ -52,23 +54,24 @@ export default function App() {
           <Route path="cosmos-founding" element={<CosmosFounding />} />
           <Route path="vender" element={<Vender />} />
           <Route path="vender/sin-stock" element={<VenderSinStock />} />
-          {/* Proveedores */}
-          <Route path="proveedores" element={<ProveedoresDashboard />} />
-          <Route path="proveedores/productos" element={<ProveedoresProductos />} />
-          <Route path="proveedores/perfil" element={<ProveedoresPerfil />} />
-          <Route path="proveedores/retailers" element={<ProveedoresRetailers />} />
-          <Route path="proveedores/ventas" element={<ProveedoresVentas />} />
-          {/* Retailer */}
-          <Route path="retailer" element={<RetailerDashboard />} />
-          <Route path="retailer/productos" element={<RetailerProducts />} />
-          <Route path="retailer/proveedores" element={<RetailerSuppliers />} />
-          <Route path="retailer/proveedores/:id" element={<RetailerSuppliers />} />
-          <Route path="retailer/tiendas" element={<RetailerStores />} />
-          <Route path="retailer/ventas" element={<RetailerVentas />} />
+          <Route path="proveedores">
+            <Route index element={<ProveedoresDashboard />} />
+            <Route path="productos" element={<ProveedoresProductos />} />
+            <Route path="perfil" element={<ProveedoresPerfil />} />
+            <Route path="retailers" element={<ProveedoresRetailers />} />
+            <Route path="ventas" element={<ProveedoresVentas />} />
+          </Route>
+          <Route path="retailer">
+            <Route index element={<RetailerDashboard />} />
+            <Route path="productos" element={<RetailerProducts />} />
+            <Route path="proveedores" element={<RetailerSuppliers />} />
+            <Route path="proveedores/:id" element={<RetailerSuppliers />} />
+            <Route path="tiendas" element={<RetailerStores />} />
+            <Route path="ventas" element={<RetailerVentas />} />
+          </Route>
           <Route path="perfil" element={<Profile />} />
           <Route path="perfil/wallet" element={<ProfileWallet />} />
           <Route path="perfil/compras/:id" element={<PurchaseTracking />} />
-          {/* Placeholder para links del footer */}
           <Route path="sobre-nosotros" element={<PagePlaceholder />} />
           <Route path="equipo" element={<PagePlaceholder />} />
           <Route path="blog" element={<PagePlaceholder />} />
@@ -81,6 +84,7 @@ export default function App() {
         </Route>
       </Routes>
     </BrowserRouter>
+    </TrustlessWorkProviders>
     </AuthProvider>
   );
 }
