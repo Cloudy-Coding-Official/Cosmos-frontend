@@ -143,7 +143,7 @@ export function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [saving, setSaving] = useState(false);
-  const { user, userRole, isLoggedIn, logout, setUser, refreshUser } = useAuth();
+  const { user, userRole, logout, setUser, refreshUser } = useAuth();
   const navigate = useNavigate();
 
   const email = user?.email ?? "";
@@ -229,26 +229,6 @@ export function Profile() {
   };
 
   const hasEmailPassword = user?.providers?.includes("email") ?? false;
-
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-[calc(100vh-72px-200px)] bg-cosmos-bg py-8 md:py-12">
-        <div className="w-full max-w-[600px] mx-auto px-6 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-cosmos-accent-soft flex items-center justify-center mx-auto mb-6">
-            <User size={32} className="text-cosmos-accent" />
-          </div>
-          <h1 className="font-display font-semibold text-cosmos-text text-2xl m-0 mb-4">Inicia sesión para ver tu perfil</h1>
-          <p className="text-cosmos-muted mb-8">Accede a tu cuenta para gestionar tu perfil, wallet y dashboards.</p>
-          <Link
-            to="/login"
-            className="inline-flex items-center gap-2 px-6 py-3 font-medium bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover transition-colors"
-          >
-            Iniciar sesión
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-[calc(100vh-72px-200px)] bg-cosmos-bg py-8 md:py-12">
