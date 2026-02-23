@@ -17,6 +17,7 @@ const QUICK_ACCESS_EXTRA: NavigationItem[] = [
 const QUICK_ACCESS_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   "/tienda": ShoppingBag,
   "/vender": Store,
+  "/retailer": Store,
   "/proveedores": Package,
   "/como-funciona": HelpCircle,
   "/perfil/wallet": TrendingUp,
@@ -143,7 +144,7 @@ export function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [saving, setSaving] = useState(false);
-  const { user, userRole, logout, setUser, refreshUser } = useAuth();
+  const { user, logout, setUser, refreshUser } = useAuth();
   const navigate = useNavigate();
 
   const email = user?.email ?? "";
@@ -358,7 +359,7 @@ export function Profile() {
             Accesos rápidos
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {[...getNavigationItems(userRole ?? null), ...QUICK_ACCESS_EXTRA].map((item) => {
+            {[...getNavigationItems(user ?? null), ...QUICK_ACCESS_EXTRA].map((item) => {
               const Icon = QUICK_ACCESS_ICONS[item.href] ?? LayoutDashboard;
               return (
                 <Link
