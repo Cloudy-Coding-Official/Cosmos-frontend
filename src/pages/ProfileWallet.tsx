@@ -41,9 +41,14 @@ export function ProfileWallet() {
         setError("Tu wallet no permitió firmar. Confirmá en el popup (Freighter u otra).");
         return;
       }
-      await authApi.linkWallet({ address, signature });
-      await refreshUser();
-      setSuccess(hasWallet ? "Wallet reemplazada correctamente." : "Wallet vinculada correctamente.");
+      const res = await authApi.linkWallet({ address, signature });
+      const alreadyLinked = /ya está vinculada a tu cuenta/i.test(res.message ?? "");
+      if (alreadyLinked) {
+        setSuccess("La wallet ingresada ya se encuentra vinculada a la cuenta.");
+      } else {
+        await refreshUser();
+        setSuccess(hasWallet ? "Wallet reemplazada correctamente." : "Wallet vinculada correctamente.");
+      }
     } catch (err) {
       const msg = getErrorMessage(err, "Error al vincular la wallet");
       if (/rejected|rechazad|cancel/i.test(msg)) {
