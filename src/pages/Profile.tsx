@@ -1,14 +1,67 @@
 import { Link, useNavigate } from "react-router-dom";
 import { User, Mail, Shield, Store, LogOut, Key, ShoppingBag, Sparkles, LayoutDashboard, Package, TrendingUp, Wallet, ShoppingCart } from "lucide-react";
 import { WalletSummary } from "../components/WalletSummary";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import { getOrders } from "../data/orders";
 import * as authApi from "../api/auth";
 import { getErrorMessage } from "../api/client";
+import { getOrdersByBuyer, orderStatusLabel, type OrderBackend, type OrderStatusBackend } from "../api/orders";
 
-function MisCompras() {
-  const orders = getOrders();
+function orderStatusClass(status: OrderStatusBackend): string {
+  switch (status) {
+    case "DELIVERED":
+    case "RELEASED":
+      return "bg-emerald-500/20 text-emerald-400";
+    case "SHIPPED":
+      return "bg-amber-500/20 text-amber-400";
+    case "CANCELLED":
+    case "DISPUTED":
+      return "bg-red-500/20 text-red-400";
+    default:
+      return "bg-cosmos-accent-soft text-cosmos-accent";
+  }
+}
+
+function MisCompras({ buyerProfileId }: { buyerProfileId: string | null }) {
+  const [orders, setOrders] = useState<OrderBackend[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!buyerProfileId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setOrders([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    getOrdersByBuyer(buyerProfileId)
+      .then(setOrders)
+      .catch((err) => setError(getErrorMessage(err, "Error al cargar compras")))
+      .finally(() => setLoading(false));
+  }, [buyerProfileId]);
+
+  if (!buyerProfileId) {
+    return (
+      <p className="text-cosmos-muted text-sm m-0 mb-4">
+        No tenés perfil de comprador. <Link to="/tienda" className="text-cosmos-accent hover:underline">Explorar tienda</Link>
+      </p>
+    );
+  }
+
+  if (loading) {
+    return <p className="text-cosmos-muted text-sm m-0 mb-4">Cargando compras...</p>;
+  }
+
+  if (error) {
+    return (
+      <div className="mb-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-sm text-red-400">
+        {error}
+      </div>
+    );
+  }
+
   if (orders.length === 0) {
     return (
       <p className="text-cosmos-muted text-sm m-0 mb-4">
@@ -16,44 +69,41 @@ function MisCompras() {
       </p>
     );
   }
-  const estadoLabels: Record<string, string> = {
-    comprado: "Comprado",
-    en_camino: "En camino",
-    confirmado: "Confirmado",
-  };
+
+  const firstProductName = (o: OrderBackend) =>
+    o.orderItems?.[0]?.product?.name ? ` · ${o.orderItems[0].product.name}` : "";
+
   return (
     <div className="space-y-3">
-      {orders.map((o) => (
-        <Link
-          key={o.id}
-          to={"/perfil/compras/" + o.id}
-          className="block p-4 rounded-xl border border-cosmos-border hover:border-cosmos-accent/40 hover:bg-cosmos-surface-elevated transition-all"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="font-medium text-cosmos-text">{o.id}</span>
-            <span
-              className={`text-xs font-medium px-2.5 py-1 rounded-lg ${
-                o.estado === "confirmado"
-                  ? "bg-emerald-500/20 text-emerald-400"
-                  : o.estado === "en_camino"
-                  ? "bg-amber-500/20 text-amber-400"
-                  : "bg-cosmos-accent-soft text-cosmos-accent"
-              }`}
-            >
-              {estadoLabels[o.estado]}
-            </span>
-          </div>
-          <p className="text-sm text-cosmos-muted m-0 mt-1">
-            {new Date(o.fecha).toLocaleDateString("es-AR", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            })}{" "}
-            · US$ {o.monto.toFixed(2)} · {o.tienda}
-          </p>
-          <p className="text-xs text-cosmos-accent mt-2 m-0">Ver seguimiento →</p>
-        </Link>
-      ))}
+      {orders.map((o) => {
+        const monto = parseFloat(o.totalAmount);
+        return (
+          <Link
+            key={o.id}
+            to={"/perfil/compras/" + o.id}
+            className="block p-4 rounded-xl border border-cosmos-border hover:border-cosmos-accent/40 hover:bg-cosmos-surface-elevated transition-all"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="font-medium text-cosmos-text">{o.id}</span>
+              <span
+                className={`text-xs font-medium px-2.5 py-1 rounded-lg ${orderStatusClass(o.status)}`}
+              >
+                {orderStatusLabel(o.status)}
+              </span>
+            </div>
+            <p className="text-sm text-cosmos-muted m-0 mt-1">
+              {new Date(o.createdAt).toLocaleDateString("es-AR", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}{" "}
+              · {o.currency} {Number.isNaN(monto) ? "—" : monto.toFixed(2)}
+              {firstProductName(o)}
+            </p>
+            <p className="text-xs text-cosmos-accent mt-2 m-0">Ver seguimiento →</p>
+          </Link>
+        );
+      })}
     </div>
   );
 }
@@ -252,7 +302,7 @@ export function Profile() {
             <ShoppingCart size={20} className="text-cosmos-accent" />
             Mis compras
           </h3>
-          <MisCompras />
+          <MisCompras buyerProfileId={user?.buyerProfileId ?? null} />
         </section>
 
         <section className="mb-8 p-6 bg-cosmos-surface border border-cosmos-border rounded-2xl hover:border-cosmos-border-strong transition-colors">
