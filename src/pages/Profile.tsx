@@ -1,11 +1,27 @@
 import { Link, useNavigate } from "react-router-dom";
-import { User, Mail, Shield, Store, LogOut, Key, ShoppingBag, Sparkles, LayoutDashboard, Package, TrendingUp, Wallet, ShoppingCart, X } from "lucide-react";
+import { User, Mail, Shield, Store, LogOut, Key, ShoppingBag, Sparkles, LayoutDashboard, Package, TrendingUp, Wallet, ShoppingCart, X, HelpCircle } from "lucide-react";
 import { WalletSummary } from "../components/WalletSummary";
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import * as authApi from "../api/auth";
 import { getErrorMessage } from "../api/client";
 import { getOrdersByBuyer, orderStatusLabel, type OrderBackend, type OrderStatusBackend } from "../api/orders";
+import { getNavigationItems } from "../data/navigationItems";
+import type { NavigationItem } from "../types/types";
+
+const QUICK_ACCESS_EXTRA: NavigationItem[] = [
+  { title: "Mi wallet", href: "/perfil/wallet" },
+  { title: "Cosmos Pay", href: "/cosmos-pay" },
+];
+
+const QUICK_ACCESS_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+  "/tienda": ShoppingBag,
+  "/vender": Store,
+  "/proveedores": Package,
+  "/como-funciona": HelpCircle,
+  "/perfil/wallet": TrendingUp,
+  "/cosmos-pay": Wallet,
+};
 
 function orderStatusClass(status: OrderStatusBackend): string {
   switch (status) {
@@ -127,7 +143,7 @@ export function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [saving, setSaving] = useState(false);
-  const { user, isLoggedIn, logout, setUser, refreshUser } = useAuth();
+  const { user, userRole, isLoggedIn, logout, setUser, refreshUser } = useAuth();
   const navigate = useNavigate();
 
   const email = user?.email ?? "";
@@ -362,34 +378,19 @@ export function Profile() {
             Accesos rápidos
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <Link
-              to="/retailer"
-              className="flex items-center gap-3 p-4 rounded-xl border border-cosmos-border hover:border-cosmos-accent hover:bg-cosmos-surface-elevated transition-all group"
-            >
-              <Store size={22} className="text-cosmos-accent group-hover:scale-110 transition-transform" />
-              <span className="font-medium text-cosmos-text">Mi tienda (Retailer)</span>
-            </Link>
-            <Link
-              to="/proveedores"
-              className="flex items-center gap-3 p-4 rounded-xl border border-cosmos-border hover:border-cosmos-accent hover:bg-cosmos-surface-elevated transition-all group"
-            >
-              <Package size={22} className="text-cosmos-accent group-hover:scale-110 transition-transform" />
-              <span className="font-medium text-cosmos-text">Proveedores</span>
-            </Link>
-            <Link
-              to="/cosmos-pay"
-              className="flex items-center gap-3 p-4 rounded-xl border border-cosmos-border hover:border-cosmos-accent hover:bg-cosmos-surface-elevated transition-all group"
-            >
-              <Wallet size={22} className="text-cosmos-accent group-hover:scale-110 transition-transform" />
-              <span className="font-medium text-cosmos-text">Cosmos Pay</span>
-            </Link>
-            <Link
-              to="/perfil/wallet"
-              className="flex items-center gap-3 p-4 rounded-xl border border-cosmos-border hover:border-cosmos-accent hover:bg-cosmos-surface-elevated transition-all group"
-            >
-              <TrendingUp size={22} className="text-cosmos-accent group-hover:scale-110 transition-transform" />
-              <span className="font-medium text-cosmos-text">Mi wallet</span>
-            </Link>
+            {[...getNavigationItems(userRole ?? null), ...QUICK_ACCESS_EXTRA].map((item) => {
+              const Icon = QUICK_ACCESS_ICONS[item.href] ?? LayoutDashboard;
+              return (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  className="flex items-center gap-3 p-4 rounded-xl border border-cosmos-border hover:border-cosmos-accent hover:bg-cosmos-surface-elevated transition-all group"
+                >
+                  <Icon size={22} className="text-cosmos-accent group-hover:scale-110 transition-transform shrink-0" />
+                  <span className="font-medium text-cosmos-text">{item.title}</span>
+                </Link>
+              );
+            })}
           </div>
         </section>
 
