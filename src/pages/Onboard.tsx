@@ -236,11 +236,11 @@ export function Onboard() {
               <form className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); handleNext(); }}>
                 <label className="flex flex-col gap-1.5">
                   <span className="text-xs font-medium uppercase tracking-wider text-cosmos-muted">Nombre</span>
-                  <input type="text" className={inputBase} value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Ej: Juan" required />
+                  <input type="text" className={inputBase} value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Ingresa tu nombre" required />
                 </label>
                 <label className="flex flex-col gap-1.5">
                   <span className="text-xs font-medium uppercase tracking-wider text-cosmos-muted">Apellido</span>
-                  <input type="text" className={inputBase} value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Ej: García" required />
+                  <input type="text" className={inputBase} value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Ingresa tu apellido" required />
                 </label>
                 <label className="flex flex-col gap-1.5">
                   <span className="text-xs font-medium uppercase tracking-wider text-cosmos-muted">Correo electrónico</span>
