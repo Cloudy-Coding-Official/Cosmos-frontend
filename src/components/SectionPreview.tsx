@@ -35,8 +35,13 @@ export function SectionPreview({ section, onExpandAccount }: SectionPreviewProps
   const config = section === "retailer" ? RETAILER_PREVIEW : PROVEEDOR_PREVIEW;
   const HeaderIcon = section === "retailer" ? Store : Package;
 
+  const expandMessage =
+    section === "retailer"
+      ? "Agregá el perfil de retailer a tu cuenta para gestionar tu tienda, productos y ventas."
+      : "Agregá el perfil de proveedor para subir tu catálogo y vender a retailers.";
+
   return (
-    <div className="min-h-screen bg-cosmos-bg py-8 md:py-12">
+    <div className="min-h-screen bg-cosmos-bg py-8 md:py-12 relative">
       <div className="w-full max-w-[1200px] mx-auto px-6">
         <div className="flex items-center gap-3 mb-10">
           <div className="w-14 h-14 rounded-2xl bg-cosmos-accent-soft flex items-center justify-center">
@@ -93,12 +98,16 @@ export function SectionPreview({ section, onExpandAccount }: SectionPreviewProps
             );
           })}
         </div>
+      </div>
 
-        <div className="mt-12 p-6 md:p-8 bg-cosmos-accent-soft border border-cosmos-accent/30 rounded-2xl text-center">
-          <p className="text-cosmos-text font-medium m-0 mb-4">
-            {section === "retailer"
-              ? "Agregá el perfil de retailer a tu cuenta para gestionar tu tienda, productos y ventas."
-              : "Agregá el perfil de proveedor para subir tu catálogo y vender a retailers."}
+      {/* Blackout modal */}
+      <div className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div
+          className="bg-cosmos-surface border border-cosmos-border rounded-2xl shadow-xl w-full max-w-md p-6 text-center"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <p className="text-cosmos-text font-medium m-0 mb-6">
+            {expandMessage}
           </p>
           <button
             type="button"
