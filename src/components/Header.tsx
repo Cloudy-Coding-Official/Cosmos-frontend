@@ -3,11 +3,18 @@ import { Menu, X, ShoppingCart, User, Store } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { BrandLogo } from "./BrandLogo";
+import { getNavigationItems } from "../data/navigationItems";
+
+const linkClass = (isActive: boolean) =>
+  `px-3 py-2 text-[0.9375rem] font-medium rounded-lg transition-colors ${
+    isActive ? "text-cosmos-text bg-cosmos-surface-elevated" : "text-cosmos-muted hover:text-cosmos-text hover:bg-cosmos-surface-elevated"
+  }`;
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, userRole } = useAuth();
+  const navItems = getNavigationItems(userRole ?? null);
 
   return (
     <header className="sticky top-0 z-[100] h-[72px] bg-cosmos-surface/80 border-b border-cosmos-border backdrop-blur-xl">
@@ -18,15 +25,18 @@ export function Header() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">
-          <Link
-            to="/tienda"
-            className={`px-3 py-2 text-[0.9375rem] font-medium rounded-lg transition-colors ${location.pathname === "/tienda" ? "text-cosmos-text bg-cosmos-surface-elevated" : "text-cosmos-muted hover:text-cosmos-text hover:bg-cosmos-surface-elevated"}`}
-          >
-            Comprar
-          </Link>
-          <Link to="/vender" className="px-3 py-2 text-[0.9375rem] font-medium text-cosmos-muted hover:text-cosmos-text hover:bg-cosmos-surface-elevated rounded-lg transition-colors">Vender</Link>
-          <Link to="/proveedores" className={`px-3 py-2 text-[0.9375rem] font-medium rounded-lg transition-colors ${location.pathname.startsWith("/proveedores") ? "text-cosmos-text bg-cosmos-surface-elevated" : "text-cosmos-muted hover:text-cosmos-text hover:bg-cosmos-surface-elevated"}`}>Proveedores</Link>
-          <Link to="/como-funciona" className="px-3 py-2 text-[0.9375rem] font-medium text-cosmos-muted hover:text-cosmos-text hover:bg-cosmos-surface-elevated rounded-lg transition-colors">Cómo funciona</Link>
+          {navItems.map((item) => {
+            const isActive = item.href === "/" ? location.pathname === "/" : location.pathname === item.href || (item.href !== "/" && location.pathname.startsWith(item.href));
+            return (
+              <Link
+                key={item.href}
+                to={item.href}
+                className={linkClass(!!isActive)}
+              >
+                {item.title}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-2">
@@ -67,11 +77,16 @@ export function Header() {
 
       {menuOpen && (
         <div className="absolute top-[72px] left-0 right-0 p-4 md:hidden bg-cosmos-surface border-b border-cosmos-border flex flex-col gap-1 rounded-b-xl shadow-xl">
-          <Link to="/tienda" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated">Comprar</Link>
-          <Link to="/vender" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated">Vender</Link>
-          <Link to="/proveedores" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated">Proveedores</Link>
-          <Link to="/cosmos-pay" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated">Cosmos Pay</Link>
-          <Link to="/como-funciona" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated">Cómo funciona</Link>
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              to={item.href}
+              onClick={() => setMenuOpen(false)}
+              className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated"
+            >
+              {item.title}
+            </Link>
+          ))}
           <Link to="/carrito" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated">Carrito</Link>
           {isLoggedIn ? (
             <>
