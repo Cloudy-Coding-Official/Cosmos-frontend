@@ -172,3 +172,19 @@ export async function changePassword(data: {
     body: JSON.stringify(data),
   });
 }
+
+export type ExpandAccountPayload = {
+  role: "retailer" | "proveedor";
+  country?: string;
+  brandName?: string;
+  legalName?: string;
+  taxId?: string;
+};
+
+export async function expandAccount(data: ExpandAccountPayload): Promise<AuthUser> {
+  const res = await apiRequest<{ user: AuthUser }>("/auth/me/expand-account", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  return res.user;
+}
