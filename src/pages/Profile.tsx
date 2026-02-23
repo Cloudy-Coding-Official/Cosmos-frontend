@@ -295,11 +295,23 @@ export function Profile() {
         <section className="mb-8">
           <WalletSummary
             viewDetails={true}
-            estimatedUsdt={1250.5}
-            walletsCount={2}
+            estimatedUsdt={0}
+            walletsCount={user?.walletAddresses?.length ?? 0}
             loadingBalances={false}
             loadingWallets={false}
           />
+          {user?.walletAddresses?.length ? (
+            <p className="text-sm text-cosmos-muted mt-3">
+              Wallet vinculada: <span className="font-mono text-cosmos-text">{user.walletAddresses[0]}</span>
+            </p>
+          ) : (
+            <p className="text-sm text-cosmos-muted mt-3">
+              No tenés wallet vinculada.{" "}
+              <Link to="/perfil/wallet" className="text-cosmos-accent hover:underline">
+                Sincronizá tu wallet Stellar
+              </Link>
+            </p>
+          )}
         </section>
 
         <section className="mb-8 p-6 bg-cosmos-surface border border-cosmos-border rounded-2xl hover:border-cosmos-border-strong transition-colors">
