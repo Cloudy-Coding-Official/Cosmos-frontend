@@ -1,9 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { AuthProviders } from "../components/AuthProviders";
 import { AuthLayout } from "../components/AuthLayout";
 import { useAuth } from "../context/AuthContext";
 import { useStellarWallet } from "../context/StellarWalletContext";
+import { useGoogleSignIn } from "../hooks/useGoogleSignIn";
 import * as authApi from "../api/auth";
 import { getErrorMessage } from "../api/client";
 
@@ -12,11 +13,46 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [stellarLoginLoading, setStellarLoginLoading] = useState(false);
   const stellarLoginInProgress = useRef(false);
   const { setUser, login } = useAuth();
   const stellar = useStellarWallet();
   const navigate = useNavigate();
+
+  const handleGoogleCredential = useCallback(
+    async (idToken: string) => {
+      setError("");
+      setGoogleLoading(true);
+      try {
+        const res = await authApi.googleAuth({ idToken });
+        setUser(res.user);
+        const hasAnyProfile =
+          res.user.hasBuyerProfile || res.user.hasStoreProfile || res.user.hasProviderProfile;
+        if (!hasAnyProfile) {
+          login("comprador");
+          navigate("/onboard?from=google");
+          return;
+        }
+        login(
+          res.user.hasProviderProfile ? "proveedor" : res.user.hasStoreProfile ? "retailer" : "comprador"
+        );
+        navigate("/perfil");
+      } catch (err) {
+        const apiErr = err as { message?: string };
+        if (apiErr.message === "GOOGLE_NEEDS_ONBOARDING") {
+          navigate("/onboard?from=google");
+          return;
+        }
+        setError(getErrorMessage(err, "Error al iniciar sesión con Google"));
+      } finally {
+        setGoogleLoading(false);
+      }
+    },
+    [setUser, login, navigate]
+  );
+
+  const { triggerSignIn: triggerGoogleSignIn, isReady: googleReady, error: googleError } = useGoogleSignIn(handleGoogleCredential);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +72,11 @@ export function Login() {
 
   const handleGoogle = () => {
     setError("");
-    setError("No implementado");
+    if (googleError) {
+      setError(googleError);
+      return;
+    }
+    triggerGoogleSignIn();
   };
 
   const handleStellarLogin = async () => {
@@ -92,9 +132,9 @@ export function Login() {
         <h1 className="font-display text-[1.75rem] text-cosmos-text m-0 mb-1">Iniciar sesión</h1>
         <p className="text-[0.9375rem] text-cosmos-muted m-0 mb-6">Accede a tu cuenta de Cosmos</p>
 
-        {error && (
+        {(error || googleError) && (
           <div className="mb-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-sm text-red-400">
-            {error}
+            {error || googleError}
           </div>
         )}
 
@@ -144,7 +184,8 @@ export function Login() {
 
         <AuthProviders
           mode="login"
-          onGoogle={handleGoogle}
+          onGoogle={googleReady ? handleGoogle : undefined}
+          googleLoading={googleLoading}
           onStellarLogin={handleStellarLogin}
           stellarLoginLoading={stellarLoginLoading}
         />
