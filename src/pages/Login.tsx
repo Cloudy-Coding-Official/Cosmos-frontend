@@ -52,7 +52,7 @@ export function Login() {
     [setUser, login, navigate]
   );
 
-  const { triggerSignIn: triggerGoogleSignIn, isReady: googleReady, error: googleError } = useGoogleSignIn(handleGoogleCredential);
+  const { triggerSignIn: triggerGoogleSignIn, isReady: googleReady, error: googleError, buttonContainerRef } = useGoogleSignIn(handleGoogleCredential);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,6 +128,14 @@ export function Login() {
 
   return (
     <AuthLayout>
+      {/* Contenedor oculto para el botón de Google (abre el modal clásico al hacer clic en "Continuar con Google") */}
+      {googleReady && (
+        <div
+          ref={buttonContainerRef}
+          className="absolute left-[-9999px] w-[240px] h-[48px] overflow-hidden"
+          aria-hidden
+        />
+      )}
       <div className="p-10 bg-cosmos-surface border border-cosmos-border rounded-xl shadow-xl">
         <h1 className="font-display text-[1.75rem] text-cosmos-text m-0 mb-1">Iniciar sesión</h1>
         <p className="text-[0.9375rem] text-cosmos-muted m-0 mb-6">Accede a tu cuenta de Cosmos</p>
