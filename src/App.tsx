@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { TrustlessWorkProviders } from "./components/providers/TrustlessWorkProviders";
 import { Layout } from "./components/Layout";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Landing } from "./pages/Landing";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
@@ -54,14 +55,14 @@ export default function App() {
           <Route path="cosmos-founding" element={<CosmosFounding />} />
           <Route path="vender" element={<Vender />} />
           <Route path="vender/sin-stock" element={<VenderSinStock />} />
-          <Route path="proveedores">
+          <Route path="proveedores" element={<ProtectedRoute allowedRoles={["proveedor"]} />}>
             <Route index element={<ProveedoresDashboard />} />
             <Route path="productos" element={<ProveedoresProductos />} />
             <Route path="perfil" element={<ProveedoresPerfil />} />
             <Route path="retailers" element={<ProveedoresRetailers />} />
             <Route path="ventas" element={<ProveedoresVentas />} />
           </Route>
-          <Route path="retailer">
+          <Route path="retailer" element={<ProtectedRoute allowedRoles={["retailer"]} />}>
             <Route index element={<RetailerDashboard />} />
             <Route path="productos" element={<RetailerProducts />} />
             <Route path="proveedores" element={<RetailerSuppliers />} />
@@ -69,9 +70,11 @@ export default function App() {
             <Route path="tiendas" element={<RetailerStores />} />
             <Route path="ventas" element={<RetailerVentas />} />
           </Route>
-          <Route path="perfil" element={<Profile />} />
-          <Route path="perfil/wallet" element={<ProfileWallet />} />
-          <Route path="perfil/compras/:id" element={<PurchaseTracking />} />
+          <Route path="perfil" element={<ProtectedRoute />}>
+            <Route index element={<Profile />} />
+            <Route path="wallet" element={<ProfileWallet />} />
+            <Route path="compras/:id" element={<PurchaseTracking />} />
+          </Route>
           <Route path="sobre-nosotros" element={<PagePlaceholder />} />
           <Route path="equipo" element={<PagePlaceholder />} />
           <Route path="blog" element={<PagePlaceholder />} />
