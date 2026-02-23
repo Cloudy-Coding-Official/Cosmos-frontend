@@ -18,6 +18,8 @@ export type AuthUser = {
   buyerProfileId: string | null;
   storeProfileId: string | null;
   providerProfileId: string | null;
+  firstName: string | null;
+  lastName: string | null;
   createdAt: string;
 };
 
@@ -148,4 +150,15 @@ export async function logoutAllApi(): Promise<void> {
 
 export async function me(): Promise<AuthUser> {
   return apiRequest<AuthUser>("/auth/me", { method: "GET" });
+}
+
+export async function updateProfile(data: {
+  firstName?: string;
+  lastName?: string;
+}): Promise<AuthUser> {
+  const res = await apiRequest<{ user: AuthUser }>("/auth/me/profile", {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+  return res.user;
 }
