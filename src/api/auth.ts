@@ -162,3 +162,13 @@ export async function updateProfile(data: {
   });
   return res.user;
 }
+
+export async function changePassword(data: {
+  currentPassword: string;
+  newPassword: string;
+}): Promise<{ message: string }> {
+  return apiRequest("/auth/me/password", {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
