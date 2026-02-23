@@ -3,8 +3,13 @@ import { useState } from "react";
 import { ShoppingBag, Store, Package, ChevronRight, ChevronLeft, Check } from "lucide-react";
 import { AuthLayout } from "../components/AuthLayout";
 import { useAuth } from "../context/AuthContext";
+import { useStellarWallet } from "../context/StellarWalletContext";
+import * as authApi from "../api/auth";
+import { getErrorMessage } from "../api/client";
 
 export type OnboardRole = "comprador" | "retailer" | "proveedor";
+
+const WALLET_ONBOARDING_KEY = "cosmos_wallet_onboarding_address";
 
 const STEPS = [
   { id: 1, title: "Tipo de cuenta" },
@@ -16,6 +21,7 @@ const STEPS = [
 export function Onboard() {
   const [searchParams] = useSearchParams();
   const roleParam = searchParams.get("role") as OnboardRole | null;
+  const fromWallet = searchParams.get("from") === "wallet";
   const [step, setStep] = useState(1);
   const [role, setRole] = useState<OnboardRole | null>(
     roleParam && ["comprador", "retailer", "proveedor"].includes(roleParam) ? roleParam : null
@@ -25,7 +31,10 @@ export function Onboard() {
   const [password, setPassword] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [country, setCountry] = useState("");
-  const { login } = useAuth();
+  const [finishError, setFinishError] = useState("");
+  const [finishLoading, setFinishLoading] = useState(false);
+  const { login, setUser } = useAuth();
+  const stellar = useStellarWallet();
   const navigate = useNavigate();
 
   const needsBusinessStep = role === "retailer" || role === "proveedor";
@@ -38,7 +47,51 @@ export function Onboard() {
 
   const handleBack = () => setStep((s) => Math.max(1, s - 1));
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
+    if (fromWallet) {
+      const walletAddress = sessionStorage.getItem(WALLET_ONBOARDING_KEY);
+      if (!walletAddress) {
+        setFinishError("No se encontró la dirección de la wallet. Volvé a iniciar sesión con tu wallet.");
+        return;
+      }
+      if (!stellar?.address || stellar.address !== walletAddress) {
+        setFinishError("Conectá la misma wallet que usaste para iniciar (Freighter u otra).");
+        return;
+      }
+      setFinishError("");
+      setFinishLoading(true);
+      try {
+        const { message } = await authApi.getWalletNonce(walletAddress);
+        const signature = await stellar.signMessage(message);
+        if (!signature) {
+          setFinishError("Tu wallet no permitió firmar. Probá de nuevo y confirmá en el popup.");
+          return;
+        }
+        const res = await authApi.registerWithWallet({
+          email,
+          password,
+          address: walletAddress,
+          signature,
+          country: country || undefined,
+          role: role ?? "comprador",
+          businessName: needsBusinessStep ? businessName : undefined,
+          taxId: role === "proveedor" ? undefined : undefined,
+        });
+        sessionStorage.removeItem(WALLET_ONBOARDING_KEY);
+        setUser(res.user);
+        login(
+          res.user.hasProviderProfile ? "proveedor" : res.user.hasStoreProfile ? "retailer" : "comprador"
+        );
+        if (role === "retailer") navigate("/retailer");
+        else if (role === "proveedor") navigate("/proveedores");
+        else navigate("/perfil");
+      } catch (err) {
+        setFinishError(getErrorMessage(err, "Error al crear la cuenta"));
+      } finally {
+        setFinishLoading(false);
+      }
+      return;
+    }
     login(role || "comprador");
     if (role === "retailer") navigate("/retailer");
     else if (role === "proveedor") navigate("/proveedores");
@@ -196,16 +249,43 @@ export function Onboard() {
           {/* Step 4 (o 3 si comprador): Resumen / Listo */}
           {(step === totalSteps) && (
             <div className="text-center">
-              <div className="w-16 h-16 rounded-2xl bg-cosmos-accent-soft flex items-center justify-center mx-auto mb-4">
-                <Check size={32} className="text-cosmos-accent" />
-              </div>
-              <h2 className="font-display font-semibold text-cosmos-text text-lg m-0 mb-2">¡Cuenta creada!</h2>
-              <p className="text-cosmos-muted text-sm m-0 mb-6">
-                Vas a ser redirigido a tu {role === "comprador" ? "perfil" : role === "retailer" ? "dashboard de retailer" : "panel de proveedores"}.
-              </p>
-              <button type="button" onClick={handleFinish} className="w-full px-6 py-3.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover transition-colors">
-                Continuar
-              </button>
+              {fromWallet ? (
+                <>
+                  <div className="w-16 h-16 rounded-2xl bg-cosmos-accent-soft flex items-center justify-center mx-auto mb-4">
+                    <Check size={32} className="text-cosmos-accent" />
+                  </div>
+                  <h2 className="font-display font-semibold text-cosmos-text text-lg m-0 mb-2">Crear cuenta con tu wallet</h2>
+                  <p className="text-cosmos-muted text-sm m-0 mb-4">
+                    Al continuar se creará tu cuenta con estos datos y se vinculará tu wallet.
+                  </p>
+                  {finishError && (
+                    <div className="mb-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-sm text-red-400 text-left">
+                      {finishError}
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleFinish}
+                    disabled={finishLoading}
+                    className="w-full px-6 py-3.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover transition-colors disabled:opacity-60"
+                  >
+                    {finishLoading ? "Creando cuenta…" : "Crear cuenta"}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="w-16 h-16 rounded-2xl bg-cosmos-accent-soft flex items-center justify-center mx-auto mb-4">
+                    <Check size={32} className="text-cosmos-accent" />
+                  </div>
+                  <h2 className="font-display font-semibold text-cosmos-text text-lg m-0 mb-2">¡Cuenta creada!</h2>
+                  <p className="text-cosmos-muted text-sm m-0 mb-6">
+                    Vas a ser redirigido a tu {role === "comprador" ? "perfil" : role === "retailer" ? "dashboard de retailer" : "panel de proveedores"}.
+                  </p>
+                  <button type="button" onClick={handleFinish} className="w-full px-6 py-3.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover transition-colors">
+                    Continuar
+                  </button>
+                </>
+              )}
             </div>
           )}
 
