@@ -1,21 +1,64 @@
 import { useParams, Link } from "react-router-dom";
 import { ShoppingCart, Shield, Truck, Star, Check } from "lucide-react";
-import { useState } from "react";
-import { getProductById, MOCK_PRODUCTS } from "../../data/products";
+import { useState, useEffect } from "react";
+import { getProductById, type Product } from "../../api/products";
 import { ProductImage } from "../../components/ProductImage";
 
 const defaultSpecs = [
-  { label: "Conectividad", value: "Bluetooth 5.2" },
-  { label: "Batería", value: "Hasta 30 h" },
-  { label: "Incluye", value: "Estuche, cable" },
+  { label: "Incluye", value: "—" },
 ];
 
 export function Product() {
   const { id } = useParams<{ id: string }>();
   const [quantity, setQuantity] = useState(1);
-  const product = (id ? getProductById(id) : null) ?? MOCK_PRODUCTS[0];
-  const specs = product.specs ?? defaultSpecs;
-  const total = (product.price * quantity + 0.1) * 1.01;
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    getProductById(id)
+      .then((p) => {
+        if (!cancelled) setProduct(p ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setError("Error al cargar el producto");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [id]);
+
+  const specs = product?.specs?.length ? product.specs : defaultSpecs;
+  const total = product ? (product.price * quantity + 0.1) * 1.01 : 0;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-cosmos-bg py-8 md:py-12">
+        <div className="w-full max-w-[1200px] mx-auto px-6">
+          <p className="text-cosmos-muted">Cargando producto…</p>
+        </div>
+      </div>
+    );
+  }
+  if (error || !product) {
+    return (
+      <div className="min-h-screen bg-cosmos-bg py-8 md:py-12">
+        <div className="w-full max-w-[1200px] mx-auto px-6">
+          <p className="text-cosmos-muted mb-4">{error ?? "Producto no encontrado."}</p>
+          <Link to="/tienda" className="text-cosmos-accent hover:underline">Volver a la tienda</Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-cosmos-bg py-8 md:py-12">
