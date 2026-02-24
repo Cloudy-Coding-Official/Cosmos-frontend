@@ -62,7 +62,25 @@ export function ProfileWallet() {
   };
 
   return (
-    <div className="py-8 bg-cosmos-bg min-h-[calc(100vh-72px-200px)]">
+    <div className="py-8 bg-cosmos-bg min-h-[calc(100vh-72px-200px)] relative">
+      {linking && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          role="status"
+          aria-live="polite"
+          aria-label="Esperando confirmación de la wallet"
+        >
+          <div className="mx-4 max-w-sm rounded-2xl border border-cosmos-border bg-cosmos-surface p-6 text-center shadow-xl">
+            <RefreshCw size={32} className="mx-auto mb-4 text-cosmos-accent animate-spin" />
+            <h3 className="font-display font-semibold text-cosmos-text text-lg m-0 mb-2">
+              Esperando confirmación desde la wallet
+            </h3>
+            <p className="text-sm text-cosmos-muted m-0">
+              Confirmá la firma en Freighter, xBull o tu extensión de Stellar. La página se actualizará al recibir la respuesta.
+            </p>
+          </div>
+        </div>
+      )}
       <div className="w-full max-w-[1200px] mx-auto px-6">
         <div className="flex items-center gap-3 mb-8">
           <Link
