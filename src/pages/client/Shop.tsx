@@ -1,44 +1,68 @@
 import { Link } from "react-router-dom";
-import { Search, SlidersHorizontal, Star, Sparkles } from "lucide-react";
+import { Search, SlidersHorizontal, Star, Sparkles, X } from "lucide-react";
 import { useState, useEffect } from "react";
-import { getProducts, type Product } from "../../api/products";
+import { getProducts, getProductCategories, type Product, type ProductFilters } from "../../api/products";
 import { ProductImage } from "../../components/ProductImage";
 import { getErrorMessage } from "../../api/client";
+
+const SORT_OPTIONS: { value: ProductFilters["sort"]; label: string }[] = [
+  { value: undefined, label: "Relevancia" },
+  { value: "price_asc", label: "Precio: menor a mayor" },
+  { value: "price_desc", label: "Precio: mayor a menor" },
+  { value: "rating", label: "Mejor valorados" },
+  { value: "newest", label: "Más recientes" },
+];
 
 export function Shop() {
   const [search, setSearch] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filters, setFilters] = useState<{
+    category?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    sort?: ProductFilters["sort"];
+  }>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    getProductCategories()
+      .then((list) => { if (!cancelled) setCategories(list); })
+      .catch(() => { if (!cancelled) setCategories([]); });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     setError(null);
-    getProducts()
-      .then((list) => {
-        if (!cancelled) setProducts(list);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(getErrorMessage(err, "Error al cargar productos"));
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+    const params: ProductFilters = {
+      ...(search.trim() && { q: search.trim() }),
+      ...(filters.category && { category: filters.category }),
+      ...(filters.minPrice != null && filters.minPrice >= 0 && { minPrice: filters.minPrice }),
+      ...(filters.maxPrice != null && filters.maxPrice >= 0 && { maxPrice: filters.maxPrice }),
+      ...(filters.sort && { sort: filters.sort }),
+    };
+    getProducts(params)
+      .then((list) => { if (!cancelled) setProducts(list); })
+      .catch((err) => { if (!cancelled) setError(getErrorMessage(err, "Error al cargar productos")); })
+      .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, []);
+  }, [search, filters.category, filters.minPrice, filters.maxPrice, filters.sort]);
 
-  const filtered = search.trim()
-    ? products.filter(
-        (p) =>
-          p.name.toLowerCase().includes(search.toLowerCase()) ||
-          p.seller.toLowerCase().includes(search.toLowerCase())
-      )
-    : products;
+  const isEmpty = !loading && !error && products.length === 0;
+  const hasSearch = search.trim().length > 0 || !!filters.category || filters.minPrice != null || filters.maxPrice != null;
 
-  const isEmpty = !loading && !error && filtered.length === 0;
-  const hasSearch = search.trim().length > 0;
+  const clearFilters = () => {
+    setFilters({});
+    setSearch("");
+  };
+
+  const hasActiveFilters = hasSearch || !!filters.sort;
 
   return (
     <div className="min-h-screen bg-cosmos-bg">
@@ -70,12 +94,116 @@ export function Shop() {
             </div>
             <button
               type="button"
-              className="inline-flex items-center gap-2 px-5 py-3.5 font-medium bg-cosmos-surface text-cosmos-text border border-cosmos-border rounded-xl hover:border-cosmos-accent hover:text-cosmos-accent hover:bg-cosmos-surface-elevated transition-all"
+              onClick={() => setFiltersOpen((o) => !o)}
+              className={`inline-flex items-center gap-2 px-5 py-3.5 font-medium rounded-xl border transition-all ${filtersOpen || hasActiveFilters
+                ? "bg-cosmos-accent/10 text-cosmos-accent border-cosmos-accent/40"
+                : "bg-cosmos-surface text-cosmos-text border-cosmos-border hover:border-cosmos-accent hover:text-cosmos-accent hover:bg-cosmos-surface-elevated"
+                }`}
             >
               <SlidersHorizontal size={18} />
               Filtros
+              {hasActiveFilters && (
+                <span className="ml-1 w-2 h-2 rounded-full bg-cosmos-accent" aria-hidden />
+              )}
             </button>
+            <label className="flex items-center gap-2 text-cosmos-muted text-sm">
+              <span className="whitespace-nowrap">Ordenar:</span>
+              <select
+                value={filters.sort ?? ""}
+                onChange={(e) =>
+                  setFilters((f) => ({
+                    ...f,
+                    sort: (e.target.value || undefined) as ProductFilters["sort"],
+                  }))
+                }
+                className="bg-cosmos-surface border border-cosmos-border text-cosmos-text rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cosmos-accent"
+              >
+                {SORT_OPTIONS.map((opt) => (
+                  <option key={opt.value ?? "default"} value={opt.value ?? ""}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
+
+          {filtersOpen && (
+            <div
+              className="mt-6 p-5 rounded-2xl border border-cosmos-border bg-cosmos-surface/80 backdrop-blur"
+              role="region"
+              aria-label="Opciones de filtro"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-semibold text-cosmos-text m-0 text-lg">Filtros</h2>
+                <button
+                  type="button"
+                  onClick={() => setFiltersOpen(false)}
+                  className="p-2 text-cosmos-muted hover:text-cosmos-text rounded-lg"
+                  aria-label="Cerrar filtros"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div>
+                  <label className="block text-sm font-medium text-cosmos-text mb-2">Categoría</label>
+                  <select
+                    value={filters.category ?? ""}
+                    onChange={(e) =>
+                      setFilters((f) => ({ ...f, category: e.target.value || undefined }))
+                    }
+                    className="w-full bg-cosmos-bg border border-cosmos-border text-cosmos-text rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cosmos-accent"
+                  >
+                    <option value="">Todas</option>
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-cosmos-text mb-2">Precio mín. (US$)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    placeholder="0"
+                    value={filters.minPrice ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value === "" ? undefined : parseFloat(e.target.value);
+                      setFilters((f) => ({ ...f, minPrice: Number.isFinite(v) ? v : undefined }));
+                    }}
+                    className="w-full bg-cosmos-bg border border-cosmos-border text-cosmos-text rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cosmos-accent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-cosmos-text mb-2">Precio máx. (US$)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    placeholder="Sin tope"
+                    value={filters.maxPrice ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value === "" ? undefined : parseFloat(e.target.value);
+                      setFilters((f) => ({ ...f, maxPrice: Number.isFinite(v) ? v : undefined }));
+                    }}
+                    className="w-full bg-cosmos-bg border border-cosmos-border text-cosmos-text rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cosmos-accent"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="px-4 py-2 text-sm font-medium text-cosmos-muted hover:text-cosmos-accent border border-cosmos-border rounded-lg hover:border-cosmos-accent transition-colors"
+                  >
+                    Limpiar filtros
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -116,7 +244,7 @@ export function Shop() {
         )}
         {!loading && !isEmpty && (
           <section className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filtered.map((product) => (
+            {products.map((product) => (
               <Link
                 to={`/producto/${product.id}`}
                 key={product.id}

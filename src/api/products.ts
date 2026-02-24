@@ -53,13 +53,42 @@ function mapBackendToProduct(row: ProductBackend): Product {
   };
 }
 
-export async function getProducts(providerId?: string): Promise<Product[]> {
-  const path = providerId
-    ? `/products?providerId=${encodeURIComponent(providerId)}`
-    : "/products";
+export type ProductFilters = {
+  q?: string;
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sort?: "price_asc" | "price_desc" | "rating" | "newest";
+  providerId?: string;
+};
+
+function buildProductsQuery(filters?: ProductFilters): string {
+  if (!filters || Object.keys(filters).length === 0) return "";
+  const params = new URLSearchParams();
+  if (filters.q?.trim()) params.set("q", filters.q.trim());
+  if (filters.category?.trim()) params.set("category", filters.category.trim());
+  if (filters.minPrice != null && filters.minPrice >= 0) params.set("minPrice", String(filters.minPrice));
+  if (filters.maxPrice != null && filters.maxPrice >= 0) params.set("maxPrice", String(filters.maxPrice));
+  if (filters.sort) params.set("sort", filters.sort);
+  if (filters.providerId) params.set("providerId", filters.providerId);
+  const qs = params.toString();
+  return qs ? `?${qs}` : "";
+}
+
+export async function getProducts(filters?: ProductFilters): Promise<Product[]> {
+  const path = `/products${buildProductsQuery(filters)}`;
   const data = await apiRequest<ProductBackend[]>(path, { method: "GET", skipAuth: true });
   const list = Array.isArray(data) ? data : [];
   return list.map(mapBackendToProduct);
+}
+
+export async function getProductCategories(): Promise<string[]> {
+  const data = await apiRequest<{ category: string }[]>(`/products/categories/list`, {
+    method: "GET",
+    skipAuth: true,
+  });
+  const list = Array.isArray(data) ? data : [];
+  return list.map((r) => r.category);
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
