@@ -5,13 +5,18 @@ type ProductBackend = {
   name: string;
   description?: string | null;
   suggestedPrice: number | string;
+  basePrice?: number | string;
+  wholesalePrice?: number | string;
   currency?: string;
   imageUrl?: string | null;
   rating?: number | string | null;
   reviews?: number | null;
   highlights?: string[] | null;
   specs?: { label: string; value: string }[] | null;
-  provider: { id: string; legalName: string } | { id: string; legalName?: string };
+  sku?: string;
+  stock?: number;
+  category?: string;
+  provider?: { id: string; legalName?: string } | null;
 };
 
 export type Product = {
@@ -36,7 +41,7 @@ function toNumber(v: number | string | null | undefined): number {
 
 function mapBackendToProduct(row: ProductBackend): Product {
   const seller =
-    "legalName" in row.provider && row.provider.legalName
+    row.provider && "legalName" in row.provider && row.provider.legalName
       ? row.provider.legalName
       : "Proveedor";
   return {
@@ -82,8 +87,9 @@ export async function getProducts(filters?: ProductFilters): Promise<Product[]> 
   return list.map(mapBackendToProduct);
 }
 
-export async function getProductCategories(): Promise<string[]> {
-  const data = await apiRequest<{ category: string }[]>(`/products/categories/list`, {
+export async function getProductCategories(forPublicShop?: boolean): Promise<string[]> {
+  const qs = forPublicShop ? "?forPublicShop=true" : "";
+  const data = await apiRequest<{ category: string }[]>(`/products/categories/list${qs}`, {
     method: "GET",
     skipAuth: true,
   });
@@ -103,4 +109,82 @@ export async function getProductById(id: string): Promise<Product | null> {
     if (e.status === 404) return null;
     throw err;
   }
+}
+
+export type CreateProductPayload = {
+  name: string;
+  description?: string;
+  sku: string;
+  basePrice: number;
+  wholesalePrice: number;
+  suggestedPrice: number;
+  currency?: string;
+  stock?: number;
+  logisticsCost?: number;
+  category: string;
+  imageUrl?: string;
+  rating?: number;
+  reviews?: number;
+  highlights?: string[];
+  specs?: { label: string; value: string }[];
+};
+
+export type UpdateProductPayload = Partial<
+  Omit<CreateProductPayload, "sku"> & { active?: boolean }
+>;
+
+/** Datos completos del producto para edición (proveedor) */
+export type ProductForEdit = CreateProductPayload & { id: string };
+
+export async function getProductForEdit(id: string): Promise<ProductForEdit | null> {
+  try {
+    const data = await apiRequest<ProductBackend>(`/products/${encodeURIComponent(id)}`, {
+      method: "GET",
+      skipAuth: true,
+    });
+    if (!data) return null;
+    return {
+      id: data.id,
+      name: data.name,
+      description: data.description ?? undefined,
+      sku: data.sku ?? "",
+      basePrice: toNumber(data.basePrice),
+      wholesalePrice: toNumber(data.wholesalePrice),
+      suggestedPrice: toNumber(data.suggestedPrice),
+      currency: data.currency ?? "USD",
+      stock: data.stock ?? 0,
+      category: data.category ?? "General",
+      imageUrl: data.imageUrl ?? undefined,
+    };
+  } catch (err) {
+    const e = err as { status?: number };
+    if (e.status === 404) return null;
+    throw err;
+  }
+}
+
+export async function createProduct(
+  providerId: string,
+  payload: CreateProductPayload
+): Promise<Product> {
+  const data = await apiRequest<ProductBackend>(
+    `/products?providerId=${encodeURIComponent(providerId)}`,
+    { method: "POST", body: JSON.stringify(payload) }
+  );
+  return mapBackendToProduct(data);
+}
+
+export async function updateProduct(
+  id: string,
+  payload: UpdateProductPayload
+): Promise<Product> {
+  const data = await apiRequest<ProductBackend>(`/products/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+  return mapBackendToProduct(data);
+}
+
+export async function deleteProduct(id: string): Promise<void> {
+  await apiRequest(`/products/${encodeURIComponent(id)}`, { method: "DELETE" });
 }
