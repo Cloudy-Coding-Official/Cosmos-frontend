@@ -19,10 +19,13 @@ import { PurchaseTracking } from "./pages/client/PurchaseTracking";
 import { RetailerDashboard } from "./pages/retailer/RetailerDashboard";
 import { RetailerProducts } from "./pages/retailer/RetailerProducts";
 import { RetailerSuppliers } from "./pages/retailer/RetailerSuppliers";
+import { RetailerProviderProfile } from "./pages/retailer/RetailerProviderProfile";
 import { RetailerStores } from "./pages/retailer/RetailerStores";
 import { RetailerVentas } from "./pages/retailer/RetailerVentas";
 import { ProveedoresDashboard } from "./pages/proveedores/ProveedoresDashboard";
 import { ProveedoresProductos } from "./pages/proveedores/ProveedoresProductos";
+import { ProveedoresProductoNuevo } from "./pages/proveedores/ProveedoresProductoNuevo";
+import { ProveedoresProductoEditar } from "./pages/proveedores/ProveedoresProductoEditar";
 import { ProveedoresPerfil } from "./pages/proveedores/ProveedoresPerfil";
 import { ProveedoresRetailers } from "./pages/proveedores/ProveedoresRetailers";
 import { ProveedoresVentas } from "./pages/proveedores/ProveedoresVentas";
@@ -58,6 +61,8 @@ export default function App() {
           <Route path="proveedores" element={<ProtectedRoute allowedRoles={["proveedor"]} allowPreview />}>
             <Route index element={<ProveedoresDashboard />} />
             <Route path="productos" element={<ProveedoresProductos />} />
+            <Route path="productos/nuevo" element={<ProveedoresProductoNuevo />} />
+            <Route path="productos/editar/:id" element={<ProveedoresProductoEditar />} />
             <Route path="perfil" element={<ProveedoresPerfil />} />
             <Route path="retailers" element={<ProveedoresRetailers />} />
             <Route path="ventas" element={<ProveedoresVentas />} />
@@ -66,7 +71,7 @@ export default function App() {
             <Route index element={<RetailerDashboard />} />
             <Route path="productos" element={<RetailerProducts />} />
             <Route path="proveedores" element={<RetailerSuppliers />} />
-            <Route path="proveedores/:id" element={<RetailerSuppliers />} />
+            <Route path="proveedores/:id" element={<RetailerProviderProfile />} />
             <Route path="tiendas" element={<RetailerStores />} />
             <Route path="ventas" element={<RetailerVentas />} />
           </Route>
