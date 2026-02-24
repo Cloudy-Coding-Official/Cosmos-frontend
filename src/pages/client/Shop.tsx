@@ -1,11 +1,44 @@
 import { Link } from "react-router-dom";
 import { Search, SlidersHorizontal, Star, Sparkles } from "lucide-react";
-import { useState } from "react";
-import { MOCK_PRODUCTS } from "../../data/products";
+import { useState, useEffect } from "react";
+import { getProducts, type Product } from "../../api/products";
 import { ProductImage } from "../../components/ProductImage";
+import { getErrorMessage } from "../../api/client";
 
 export function Shop() {
   const [search, setSearch] = useState("");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    setError(null);
+    getProducts()
+      .then((list) => {
+        if (!cancelled) setProducts(list);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(getErrorMessage(err, "Error al cargar productos"));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  const filtered = search.trim()
+    ? products.filter(
+        (p) =>
+          p.name.toLowerCase().includes(search.toLowerCase()) ||
+          p.seller.toLowerCase().includes(search.toLowerCase())
+      )
+    : products;
+
+  const isEmpty = !loading && !error && filtered.length === 0;
+  const hasSearch = search.trim().length > 0;
 
   return (
     <div className="min-h-screen bg-cosmos-bg">
@@ -47,38 +80,74 @@ export function Shop() {
       </div>
 
       <div className="w-full max-w-[1200px] mx-auto px-6 py-10">
-        <section className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {MOCK_PRODUCTS.map((product) => (
-            <Link
-              to={`/producto/${product.id}`}
-              key={product.id}
-              className="group block bg-cosmos-surface border border-cosmos-border text-cosmos-text rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:border-cosmos-accent/40 hover:shadow-xl hover:shadow-cosmos-accent/5"
-            >
-              <div className="aspect-square bg-gradient-to-br from-cosmos-surface-elevated to-cosmos-surface relative overflow-hidden">
-                <ProductImage
-                  src={product.image}
-                  alt={product.name}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  wrapperClassName="absolute inset-0"
-                />
-                <div className="absolute inset-0 bg-cosmos-accent/5 group-hover:bg-cosmos-accent/10 transition-colors" />
-                <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 bg-cosmos-bg/90 rounded-lg">
-                  <Star size={14} className="text-amber-400 fill-amber-400" />
-                  <span className="text-xs font-medium text-cosmos-text">{product.rating}</span>
+        {error && (
+          <p className="text-red-500 mb-6" role="alert">{error}</p>
+        )}
+        {loading && (
+          <section className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" aria-busy="true" aria-label="Cargando productos">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-cosmos-surface border border-cosmos-border rounded-2xl overflow-hidden"
+              >
+                <div className="aspect-square bg-cosmos-surface-elevated animate-pulse" />
+                <div className="p-5 space-y-3">
+                  <div className="h-4 bg-cosmos-surface-elevated rounded animate-pulse w-full" />
+                  <div className="h-4 bg-cosmos-surface-elevated rounded animate-pulse w-3/4" />
+                  <div className="h-3 bg-cosmos-surface-elevated rounded animate-pulse w-1/4" />
+                  <div className="h-4 bg-cosmos-surface-elevated rounded animate-pulse w-1/3" />
                 </div>
               </div>
-              <div className="p-5">
-                <h3 className="font-semibold text-cosmos-text m-0 mb-1 line-clamp-2 group-hover:text-cosmos-accent transition-colors">
-                  {product.name}
-                </h3>
-                <p className="text-sm text-cosmos-muted m-0 mb-3">{product.seller}</p>
-                <p className="text-cosmos-text font-semibold m-0">
-                  US$ {product.price.toFixed(2)}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </section>
+            ))}
+          </section>
+        )}
+        {isEmpty && (
+          <div className="flex flex-col items-center justify-center py-16 px-6 text-center border border-cosmos-border border-dashed rounded-2xl bg-cosmos-surface/50">
+            <Sparkles size={48} className="text-cosmos-muted mb-4" />
+            <h2 className="font-display font-semibold text-cosmos-text text-xl m-0 mb-2">
+              {hasSearch ? "No hay resultados" : "Aún no hay productos"}
+            </h2>
+            <p className="text-cosmos-muted m-0 max-w-md">
+              {hasSearch
+                ? "Probá con otros términos o quitá el filtro de búsqueda."
+                : "Cuando haya productos publicados, los encontrarás aquí."}
+            </p>
+          </div>
+        )}
+        {!loading && !isEmpty && (
+          <section className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filtered.map((product) => (
+              <Link
+                to={`/producto/${product.id}`}
+                key={product.id}
+                className="group block bg-cosmos-surface border border-cosmos-border text-cosmos-text rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:border-cosmos-accent/40 hover:shadow-xl hover:shadow-cosmos-accent/5"
+              >
+                <div className="aspect-square bg-gradient-to-br from-cosmos-surface-elevated to-cosmos-surface relative overflow-hidden">
+                  <ProductImage
+                    src={product.image}
+                    alt={product.name}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    wrapperClassName="absolute inset-0"
+                  />
+                  <div className="absolute inset-0 bg-cosmos-accent/5 group-hover:bg-cosmos-accent/10 transition-colors" />
+                  <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 bg-cosmos-bg/90 rounded-lg">
+                    <Star size={14} className="text-amber-400 fill-amber-400" />
+                    <span className="text-xs font-medium text-cosmos-text">{product.rating}</span>
+                  </div>
+                </div>
+                <div className="p-5">
+                  <h3 className="font-semibold text-cosmos-text m-0 mb-1 line-clamp-2 group-hover:text-cosmos-accent transition-colors">
+                    {product.name}
+                  </h3>
+                  <p className="text-sm text-cosmos-muted m-0 mb-3">{product.seller}</p>
+                  <p className="text-cosmos-text font-semibold m-0">
+                    US$ {product.price.toFixed(2)}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </section>
+        )}
       </div>
     </div>
   );
