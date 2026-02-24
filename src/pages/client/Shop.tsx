@@ -29,7 +29,7 @@ export function Shop() {
 
   useEffect(() => {
     let cancelled = false;
-    getProductCategories()
+    getProductCategories(true)
       .then((list) => { if (!cancelled) setCategories(list); })
       .catch(() => { if (!cancelled) setCategories([]); });
     return () => { cancelled = true; };
