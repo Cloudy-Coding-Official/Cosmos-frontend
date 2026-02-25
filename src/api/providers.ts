@@ -111,6 +111,15 @@ export async function getProviderStoreOrders(storeId: string): Promise<ProviderS
   return Array.isArray(data) ? data : [];
 }
 
+export type ShippingInfo = {
+  recipientName?: string;
+  email?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
+};
+
 export type ProviderStoreOrder = {
   id: string;
   storeId: string | null;
@@ -118,6 +127,7 @@ export type ProviderStoreOrder = {
   currency: string;
   status: string;
   createdAt: string;
+  shippingInfo?: ShippingInfo | null;
   store?: { id: string; name: string; slug: string };
   orderItems?: Array<{
     id: string;
