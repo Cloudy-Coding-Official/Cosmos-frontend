@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X, ShoppingCart, User } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 import { BrandLogo } from "./BrandLogo";
 import { getNavigationItems } from "../data/navigationItems";
 
@@ -14,6 +15,7 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
   const { isLoggedIn, user } = useAuth();
+  const { itemCount } = useCart();
   const navItems = getNavigationItems(user ?? null);
 
   return (
@@ -40,8 +42,13 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Link to="/carrito" className="flex items-center justify-center w-10 h-10 text-cosmos-text hover:text-cosmos-accent hover:bg-cosmos-surface-elevated rounded-lg transition-colors" aria-label="Carrito">
+          <Link to="/carrito" className="relative flex items-center justify-center w-10 h-10 text-cosmos-text hover:text-cosmos-accent hover:bg-cosmos-surface-elevated rounded-lg transition-colors" aria-label="Carrito">
             <ShoppingCart size={20} />
+            {itemCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[1.25rem] h-5 px-1 flex items-center justify-center text-xs font-semibold bg-cosmos-accent text-cosmos-bg rounded-full">
+                {itemCount > 99 ? "99+" : itemCount}
+              </span>
+            )}
           </Link>
           {isLoggedIn ? (
             <Link to="/perfil" className="flex items-center justify-center w-10 h-10 text-cosmos-text hover:text-cosmos-accent hover:bg-cosmos-surface-elevated rounded-lg transition-colors" aria-label="Perfil">
