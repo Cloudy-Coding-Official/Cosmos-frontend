@@ -237,7 +237,7 @@ export function RetailerProviderProfile() {
                 <span>País: {provider.country}</span>
               </div>
               <p className="text-sm text-cosmos-muted mt-2 m-0">
-                Catálogo mayorista · Solo visible para retailers
+                Catálogo solo visible para retailers.
               </p>
             </div>
           </div>
@@ -263,14 +263,15 @@ export function RetailerProviderProfile() {
                   <th className="py-3 pr-4 text-sm font-medium text-cosmos-muted">Producto</th>
                   <th className="py-3 pr-4 text-sm font-medium text-cosmos-muted">SKU</th>
                   <th className="py-3 pr-4 text-sm font-medium text-cosmos-muted">Categoría</th>
-                  <th className="py-3 pr-4 text-sm font-medium text-cosmos-muted">Mayorista (US$)</th>
-                  <th className="py-3 pr-4 text-sm font-medium text-cosmos-muted">P. sugerido (US$)</th>
+                  <th className="py-3 pr-4 text-sm font-medium text-cosmos-muted">Precio (US$)</th>
+                  <th className="py-3 pr-4 text-sm font-medium text-cosmos-muted">Mayorista (US$)</th>                  <th className="py-3 pr-4 text-sm font-medium text-cosmos-muted">P. sugerido (US$)</th>
                   <th className="py-3 pr-4 text-sm font-medium text-cosmos-muted">Acción</th>
                 </tr>
               </thead>
               <tbody>
                 {products.map((p) => {
-                  const minQty = (p as { wholesaleMinQuantity?: number }).wholesaleMinQuantity;
+                  const minQty = p.wholesaleMinQuantity;
+                  const wholesalePrice = p.wholesalePrice;
                   return (
                   <tr
                     key={p.id}
@@ -292,10 +293,13 @@ export function RetailerProviderProfile() {
                     <td className="py-4 pr-4 text-sm text-cosmos-muted">{p.sku}</td>
                     <td className="py-4 pr-4 text-sm text-cosmos-muted">{p.category}</td>
                     <td className="py-4 pr-4 text-cosmos-text font-medium">
-                      {toNum(p.wholesalePrice).toFixed(2)}
+                      {toNum(p.basePrice).toFixed(2)}
+                    </td>
+                    <td className="py-4 pr-4 text-cosmos-text">
+                      {toNum(wholesalePrice).toFixed(2)}
                       {minQty != null && minQty > 1 && (
                         <span className="block text-xs font-normal text-cosmos-muted">
-                          desde {minQty} uds
+                          desde {minQty} un.
                         </span>
                       )}
                     </td>
