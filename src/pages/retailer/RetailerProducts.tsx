@@ -1,7 +1,79 @@
 import { Link } from "react-router-dom";
-import { Upload, Package, ArrowRight, Plus } from "lucide-react";
+import { Upload, Package, ArrowRight, Plus, Pencil, Check, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  getMyStoreProducts,
+  updateStoreProductPrice,
+  type StoreProductItem,
+} from "../../api/storeProducts";
+import { getErrorMessage } from "../../api/client";
+
+const inputBase =
+  "px-3 py-1.5 text-sm border border-cosmos-border bg-cosmos-surface-elevated text-cosmos-text rounded-lg focus:outline-none focus:border-cosmos-accent focus:ring-1 focus:ring-cosmos-accent w-24";
+
+function toNum(v: number | string | null | undefined): number {
+  if (v == null) return 0;
+  if (typeof v === "number") return v;
+  const n = parseFloat(String(v));
+  return Number.isFinite(n) ? n : 0;
+}
 
 export function RetailerProducts() {
+  const [storeProducts, setStoreProducts] = useState<StoreProductItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editPrice, setEditPrice] = useState("");
+  const [savingKey, setSavingKey] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadProducts = () => {
+    setLoading(true);
+    getMyStoreProducts()
+      .then(setStoreProducts)
+      .catch(() => setStoreProducts([]))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const startEdit = (item: StoreProductItem) => {
+    setEditingKey(`${item.storeId}-${item.productId}`);
+    setEditPrice(String(toNum(item.price)));
+  };
+
+  const cancelEdit = () => {
+    setEditingKey(null);
+    setEditPrice("");
+  };
+
+  const savePrice = async (item: StoreProductItem) => {
+    const price = parseFloat(editPrice);
+    if (!Number.isFinite(price) || price < 0) {
+      setError("Precio inválido");
+      return;
+    }
+    setError(null);
+    setSavingKey(`${item.storeId}-${item.productId}`);
+    try {
+      await updateStoreProductPrice(item.storeId, item.productId, price, item.currency);
+      setStoreProducts((prev) =>
+        prev.map((p) =>
+          p.storeId === item.storeId && p.productId === item.productId
+            ? { ...p, price, currency: item.currency }
+            : p
+        )
+      );
+      setEditingKey(null);
+      setEditPrice("");
+    } catch (err) {
+      setError(getErrorMessage(err, "No se pudo actualizar el precio"));
+    } finally {
+      setSavingKey(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-cosmos-bg py-8 md:py-12">
       <div className="w-full max-w-[1200px] mx-auto px-6">
@@ -12,10 +84,10 @@ export function RetailerProducts() {
         </nav>
 
         <h1 className="font-display font-semibold text-cosmos-text text-2xl md:text-3xl m-0 mb-2">
-          Subir productos
+          Mis productos
         </h1>
         <p className="text-cosmos-muted m-0 mb-10">
-          Sube productos propios o selecciona del catálogo de proveedores.
+          Productos en tu tienda y del catálogo de proveedores.
         </p>
 
         <div className="grid gap-6 md:grid-cols-2">
@@ -56,10 +128,112 @@ export function RetailerProducts() {
         </div>
 
         <div className="mt-12 p-6 bg-cosmos-surface border border-cosmos-border rounded-2xl">
-          <h3 className="font-display font-semibold text-cosmos-text m-0 mb-4">Mis productos publicados</h3>
-          <p className="text-sm text-cosmos-muted m-0">
-            Aquí aparecerán los productos que hayas subido o seleccionado de proveedores.
+          <h3 className="font-display font-semibold text-cosmos-text m-0 mb-2">Productos en mi tienda</h3>
+          <p className="text-sm text-cosmos-muted m-0 mb-4">
+            Productos que agregaste de proveedores. Podés cambiar el precio de venta cuando quieras.
           </p>
+          {error && (
+            <div className="mb-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-sm text-red-400">
+              {error}
+            </div>
+          )}
+          {loading ? (
+            <p className="text-cosmos-muted text-sm m-0">Cargando…</p>
+          ) : storeProducts.length === 0 ? (
+            <p className="text-cosmos-muted text-sm m-0">
+              Aún no tenés productos. Agregá productos desde el perfil de un{" "}
+              <Link to="/retailer/proveedores" className="text-cosmos-accent hover:underline">
+                proveedor
+              </Link>
+              .
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left">
+                <thead>
+                  <tr className="border-b border-cosmos-border">
+                    <th className="py-3 pr-4 text-sm font-medium text-cosmos-muted">Producto</th>
+                    <th className="py-3 pr-4 text-sm font-medium text-cosmos-muted">Proveedor</th>
+                    <th className="py-3 pr-4 text-sm font-medium text-cosmos-muted">Precio de venta</th>
+                    <th className="py-3 pr-4 text-sm font-medium text-cosmos-muted">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {storeProducts.map((item) => {
+                    const key = `${item.storeId}-${item.productId}`;
+                    const isEditing = editingKey === key;
+                    const isSaving = savingKey === key;
+                    return (
+                      <tr
+                        key={key}
+                        className="border-b border-cosmos-border/60 hover:bg-cosmos-surface/50 transition-colors"
+                      >
+                        <td className="py-4 pr-4 font-medium text-cosmos-text">
+                          {item.product?.name ?? "—"}
+                        </td>
+                        <td className="py-4 pr-4 text-sm text-cosmos-muted">
+                          {item.product?.provider?.legalName ?? "—"}
+                        </td>
+                        <td className="py-4 pr-4">
+                          {isEditing ? (
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-cosmos-muted">
+                                {item.currency === "USD" ? "US$" : item.currency}{" "}
+                              </span>
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={editPrice}
+                                onChange={(e) => setEditPrice(e.target.value)}
+                                className={inputBase}
+                                disabled={isSaving}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => savePrice(item)}
+                                disabled={isSaving}
+                                className="p-1.5 rounded-lg text-cosmos-accent hover:bg-cosmos-accent/10 transition-colors disabled:opacity-50"
+                                title="Guardar"
+                              >
+                                <Check size={18} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={cancelEdit}
+                                disabled={isSaving}
+                                className="p-1.5 rounded-lg text-cosmos-muted hover:bg-cosmos-surface-elevated transition-colors disabled:opacity-50"
+                                title="Cancelar"
+                              >
+                                <X size={18} />
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-cosmos-text font-medium">
+                              {item.currency === "USD" ? "US$" : ""}
+                              {toNum(item.price).toFixed(2)}
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-4 pr-4">
+                          {!isEditing && (
+                            <button
+                              type="button"
+                              onClick={() => startEdit(item)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-cosmos-accent border border-cosmos-accent/50 rounded-lg hover:bg-cosmos-accent/10"
+                            >
+                              <Pencil size={14} />
+                              Modificar precio
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>

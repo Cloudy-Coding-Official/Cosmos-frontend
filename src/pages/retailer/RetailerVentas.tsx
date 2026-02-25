@@ -95,8 +95,8 @@ export function RetailerVentas() {
           <div className="p-12 bg-cosmos-surface border border-cosmos-border rounded-2xl text-center">
             <Package size={48} className="text-cosmos-muted mx-auto mb-4" />
             <p className="text-cosmos-muted m-0">Aún no tienes ventas.</p>
-            <Link to="/retailer/productos" className="inline-flex items-center gap-2 mt-4 text-cosmos-accent hover:text-cosmos-accent-hover">
-              Publicar productos <ArrowRight size={16} />
+            <Link to="/retailer/tiendas" className="inline-flex items-center gap-2 mt-4 text-cosmos-accent hover:text-cosmos-accent-hover">
+              Ver mis tiendas y productos <ArrowRight size={16} />
             </Link>
           </div>
         )}

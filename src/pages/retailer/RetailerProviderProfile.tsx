@@ -1,9 +1,20 @@
 import { Link, useParams } from "react-router-dom";
-import { Building2, MapPin, Package, ArrowLeft, CheckCircle } from "lucide-react";
+import { Building2, MapPin, Package, ArrowLeft, CheckCircle, Plus, Check, Store as StoreIcon, X, Settings2, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { getProviderById, type ProviderProfile } from "../../api/providers";
+import { getProviderById, getProviderBySlug, type ProviderProfile } from "../../api/providers";
+import {
+  getMyStores,
+  getMyStoreProducts,
+  addProductToStore,
+  removeProductFromStore,
+  createMyStore,
+  type Store,
+  type StoreProductItem,
+} from "../../api/storeProducts";
 import { ProductImage } from "../../components/ProductImage";
 import { getErrorMessage } from "../../api/client";
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function toNum(v: number | string | null | undefined): number {
   if (v == null) return 0;
@@ -13,20 +24,31 @@ function toNum(v: number | string | null | undefined): number {
 }
 
 export function RetailerProviderProfile() {
-  const { id } = useParams<{ id: string }>();
+  const { id: providerSlugOrId } = useParams<{ id: string }>();
   const [provider, setProvider] = useState<ProviderProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [myStores, setMyStores] = useState<Store[]>([]);
+  const [myStoreProducts, setMyStoreProducts] = useState<StoreProductItem[]>([]);
+  const [addingToStoreId, setAddingToStoreId] = useState<string | null>(null);
+  const [removingFromStoreId, setRemovingFromStoreId] = useState<string | null>(null);
+  const [creatingStore, setCreatingStore] = useState(false);
+  const [manageModal, setManageModal] = useState<{ productId: string; productName: string; suggestedPrice: number } | null>(null);
+  const [priceByStoreId, setPriceByStoreId] = useState<Record<string, string>>({});
+  const [manageError, setManageError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!providerSlugOrId) {
       setLoading(false);
       return;
     }
     let cancelled = false;
     setLoading(true);
-    getProviderById(id)
+    setError(null);
+    const fetchProvider = UUID_REGEX.test(providerSlugOrId)
+      ? () => getProviderById(providerSlugOrId)
+      : () => getProviderBySlug(providerSlugOrId);
+    fetchProvider()
       .then((data) => {
         if (!cancelled) setProvider(data ?? null);
       })
@@ -39,9 +61,91 @@ export function RetailerProviderProfile() {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [providerSlugOrId]);
 
-  if (!id) {
+  const loadStoresAndProducts = () => {
+    Promise.all([getMyStores(), getMyStoreProducts()])
+      .then(([stores, list]) => {
+        setMyStores(stores ?? []);
+        setMyStoreProducts(Array.isArray(list) ? list : []);
+      })
+      .catch(() => setMyStores([]));
+  };
+
+  useEffect(() => {
+    loadStoresAndProducts();
+  }, []);
+
+  const handleCreateStore = async () => {
+    setCreatingStore(true);
+    try {
+      await createMyStore("Mi tienda");
+      loadStoresAndProducts();
+    } catch (err) {
+      alert(getErrorMessage(err, "No se pudo crear la tienda"));
+    } finally {
+      setCreatingStore(false);
+    }
+  };
+
+  const storeIdsWithProduct = (productId: string) =>
+    myStoreProducts.filter((sp) => sp.productId === productId).map((sp) => sp.storeId);
+
+  const getStoreProduct = (productId: string, storeId: string): StoreProductItem | undefined =>
+    myStoreProducts.find((sp) => sp.productId === productId && sp.storeId === storeId);
+
+  const openManageModal = (productId: string, productName: string, suggestedPrice: number) => {
+    setManageModal({ productId, productName, suggestedPrice });
+    const initial: Record<string, string> = {};
+    myStores.forEach((s) => {
+      initial[s.id] = suggestedPrice > 0 ? String(suggestedPrice) : "";
+    });
+    setPriceByStoreId(initial);
+    setManageError(null);
+  };
+
+  const closeManageModal = () => {
+    if (!addingToStoreId && !removingFromStoreId) {
+      setManageModal(null);
+      setPriceByStoreId({});
+      setManageError(null);
+    }
+  };
+
+  const handleAddToStore = async (storeId: string) => {
+    if (!manageModal) return;
+    const price = parseFloat(priceByStoreId[storeId] ?? "");
+    if (!Number.isFinite(price) || price < 0) {
+      setManageError("Ingresá un precio válido");
+      return;
+    }
+    setAddingToStoreId(storeId);
+    setManageError(null);
+    try {
+      await addProductToStore(storeId, manageModal.productId, price);
+      loadStoresAndProducts();
+    } catch (err) {
+      setManageError(getErrorMessage(err, "No se pudo agregar el producto"));
+    } finally {
+      setAddingToStoreId(null);
+    }
+  };
+
+  const handleRemoveFromStore = async (storeId: string) => {
+    if (!manageModal) return;
+    setRemovingFromStoreId(storeId);
+    setManageError(null);
+    try {
+      await removeProductFromStore(storeId, manageModal.productId);
+      loadStoresAndProducts();
+    } catch (err) {
+      setManageError(getErrorMessage(err, "No se pudo quitar el producto"));
+    } finally {
+      setRemovingFromStoreId(null);
+    }
+  };
+
+  if (!providerSlugOrId) {
     return (
       <div className="min-h-screen bg-cosmos-bg py-8">
         <div className="w-full max-w-[1200px] mx-auto px-6">
@@ -149,6 +253,7 @@ export function RetailerProviderProfile() {
                   <th className="py-3 pr-4 text-sm font-medium text-cosmos-muted">Categoría</th>
                   <th className="py-3 pr-4 text-sm font-medium text-cosmos-muted">Mayorista (US$)</th>
                   <th className="py-3 pr-4 text-sm font-medium text-cosmos-muted">P. sugerido (US$)</th>
+                  <th className="py-3 pr-4 text-sm font-medium text-cosmos-muted">Acción</th>
                 </tr>
               </thead>
               <tbody>
@@ -178,6 +283,28 @@ export function RetailerProviderProfile() {
                     <td className="py-4 pr-4 text-cosmos-text">
                       {toNum(p.suggestedPrice).toFixed(2)}
                     </td>
+                    <td className="py-4 pr-4">
+                      {myStores.length > 0 ? (
+                        <button
+                          type="button"
+                          onClick={() => openManageModal(p.id, p.name, toNum(p.suggestedPrice))}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-cosmos-accent border border-cosmos-accent/50 rounded-lg hover:bg-cosmos-accent/10"
+                        >
+                          <Settings2 size={14} />
+                          Administrar
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleCreateStore}
+                          disabled={creatingStore}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-cosmos-accent border border-cosmos-accent/50 rounded-lg hover:bg-cosmos-accent/10 disabled:opacity-50"
+                        >
+                          <Plus size={14} />
+                          {creatingStore ? "Creando…" : "Crear mi tienda"}
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -185,6 +312,129 @@ export function RetailerProviderProfile() {
           </div>
         )}
       </div>
+
+      {manageModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          onClick={closeManageModal}
+        >
+          <div
+            className="bg-cosmos-surface border border-cosmos-border rounded-2xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-display font-semibold text-cosmos-text text-lg m-0">
+                Administrar producto
+              </h3>
+              {!addingToStoreId && !removingFromStoreId && (
+                <button
+                  type="button"
+                  onClick={closeManageModal}
+                  className="p-2 rounded-lg text-cosmos-muted hover:bg-cosmos-surface-elevated hover:text-cosmos-text transition-colors"
+                  aria-label="Cerrar"
+                >
+                  <X size={20} />
+                </button>
+              )}
+            </div>
+            <p className="text-sm text-cosmos-muted mb-4 truncate" title={manageModal.productName}>
+              {manageModal.productName}
+            </p>
+            {manageError && (
+              <div className="mb-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-sm text-red-400">
+                {manageError}
+              </div>
+            )}
+            <div className="space-y-3 overflow-y-auto flex-1 min-h-0">
+              {myStores.map((store) => {
+                const inStore = storeIdsWithProduct(manageModal.productId).includes(store.id);
+                const storeProduct = getStoreProduct(manageModal.productId, store.id);
+                const isAdding = addingToStoreId === store.id;
+                const isRemoving = removingFromStoreId === store.id;
+                const busy = isAdding || isRemoving;
+                return (
+                  <div
+                    key={store.id}
+                    className={`flex flex-wrap items-center gap-3 p-3 rounded-xl border ${
+                      inStore ? "border-emerald-500/30 bg-emerald-500/5" : "border-cosmos-border bg-cosmos-surface-elevated"
+                    }`}
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-cosmos-accent/10 flex items-center justify-center shrink-0">
+                      <StoreIcon size={20} className="text-cosmos-accent" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-cosmos-text m-0 truncate">{store.name}</p>
+                      {inStore && storeProduct && (
+                        <p className="text-xs text-cosmos-muted m-0">
+                          En esta tienda · US$ {toNum(storeProduct.price).toFixed(2)}
+                        </p>
+                      )}
+                    </div>
+                    {inStore ? (
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                          <Check size={14} />
+                          Ya está
+                        </span>
+                        <Link
+                          to={store.slug ? `/retailer/tiendas/${store.slug}/productos` : `/retailer/tiendas`}
+                          className="text-xs font-medium text-cosmos-accent hover:underline"
+                          onClick={closeManageModal}
+                        >
+                          Ver en tienda
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFromStore(store.id)}
+                          disabled={busy}
+                          className="p-1.5 rounded-lg text-red-500 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                          title="Quitar de esta tienda"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={priceByStoreId[store.id] ?? ""}
+                          onChange={(e) =>
+                            setPriceByStoreId((prev) => ({ ...prev, [store.id]: e.target.value }))
+                          }
+                          placeholder={String(manageModal.suggestedPrice)}
+                          className="w-24 px-2 py-1.5 text-sm border border-cosmos-border bg-cosmos-surface rounded-lg focus:outline-none focus:border-cosmos-accent"
+                          disabled={busy}
+                        />
+                        <span className="text-xs text-cosmos-muted">US$</span>
+                        <button
+                          type="button"
+                          onClick={() => handleAddToStore(store.id)}
+                          disabled={busy || !Number.isFinite(parseFloat(priceByStoreId[store.id] ?? "")) || parseFloat(priceByStoreId[store.id] ?? "0") < 0}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-cosmos-accent border border-cosmos-accent/50 rounded-lg hover:bg-cosmos-accent/10 disabled:opacity-50"
+                        >
+                          {isAdding ? "Agregando…" : "Agregar"}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-4 pt-4 border-t border-cosmos-border">
+              <button
+                type="button"
+                onClick={closeManageModal}
+                disabled={!!addingToStoreId || !!removingFromStoreId}
+                className="w-full px-4 py-2.5 font-medium text-cosmos-muted border border-cosmos-border rounded-xl hover:bg-cosmos-surface-elevated transition-colors disabled:opacity-60"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

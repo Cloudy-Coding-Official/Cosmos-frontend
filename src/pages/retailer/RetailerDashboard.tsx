@@ -3,7 +3,6 @@ import {
   Store,
   Users,
   BarChart3,
-  Upload,
   ArrowRight,
   TrendingUp,
 } from "lucide-react";
@@ -49,24 +48,24 @@ export function RetailerDashboard() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Link
-            to="/retailer/productos"
+        <Link
+            to="/retailer/tiendas"
             className="group block p-6 bg-cosmos-surface border border-cosmos-border rounded-2xl hover:border-cosmos-accent/40 hover:shadow-xl hover:shadow-cosmos-accent/5 transition-all"
           >
             <div className="w-12 h-12 rounded-xl bg-cosmos-accent-soft flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <Upload className="text-cosmos-accent" size={24} />
+              <Store className="text-cosmos-accent" size={24} />
             </div>
             <h3 className="font-display font-semibold text-cosmos-text text-lg m-0 mb-2">
-              Subir productos
+              Mis tiendas
             </h3>
             <p className="text-sm text-cosmos-muted m-0 mb-4">
-              Sube productos propios o selecciona del catálogo de proveedores.
+              Gestiona varios perfiles de tienda distintos.
             </p>
             <span className="inline-flex items-center gap-2 text-sm font-medium text-cosmos-accent">
-              Ir <ArrowRight size={16} />
+              Ver tiendas <ArrowRight size={16} />
             </span>
           </Link>
-
+          
           <Link
             to="/retailer/proveedores"
             className="group block p-6 bg-cosmos-surface border border-cosmos-border rounded-2xl hover:border-cosmos-accent/40 hover:shadow-xl hover:shadow-cosmos-accent/5 transition-all"
@@ -100,24 +99,6 @@ export function RetailerDashboard() {
             </p>
             <span className="inline-flex items-center gap-2 text-sm font-medium text-cosmos-accent">
               Ver ventas <ArrowRight size={16} />
-            </span>
-          </Link>
-
-          <Link
-            to="/retailer/tiendas"
-            className="group block p-6 bg-cosmos-surface border border-cosmos-border rounded-2xl hover:border-cosmos-accent/40 hover:shadow-xl hover:shadow-cosmos-accent/5 transition-all"
-          >
-            <div className="w-12 h-12 rounded-xl bg-cosmos-accent-soft flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <Store className="text-cosmos-accent" size={24} />
-            </div>
-            <h3 className="font-display font-semibold text-cosmos-text text-lg m-0 mb-2">
-              Mis tiendas
-            </h3>
-            <p className="text-sm text-cosmos-muted m-0 mb-4">
-              Gestiona varios perfiles de tienda distintos.
-            </p>
-            <span className="inline-flex items-center gap-2 text-sm font-medium text-cosmos-accent">
-              Ver tiendas <ArrowRight size={16} />
             </span>
           </Link>
 

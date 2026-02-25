@@ -81,7 +81,7 @@ export function RetailerSuppliers() {
             {suppliers.map((supplier) => (
               <Link
                 key={supplier.id}
-                to={`/retailer/proveedores/${supplier.id}`}
+                to={`/retailer/proveedores/${supplier.slug ?? supplier.id}`}
                 className="block p-6 bg-cosmos-surface border border-cosmos-border rounded-2xl hover:border-cosmos-accent/40 hover:shadow-lg transition-all group"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
