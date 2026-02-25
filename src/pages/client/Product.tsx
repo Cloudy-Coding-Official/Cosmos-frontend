@@ -1,22 +1,27 @@
 import { useParams, Link } from "react-router-dom";
-import { ShoppingCart, Shield, Truck, Star, Check } from "lucide-react";
+import { ShoppingCart, Shield, Truck, Star, Check, Store, Building2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { getProductById, type Product } from "../../api/products";
+import { getProductById, getProductBySlug, type Product } from "../../api/products";
 import { ProductImage } from "../../components/ProductImage";
+import { useAuth } from "../../context/AuthContext";
 
 const defaultSpecs = [
   { label: "Incluye", value: "—" },
 ];
 
 export function Product() {
-  const { id } = useParams<{ id: string }>();
+  const { id, storeSlug, productSlug } = useParams<{ id?: string; storeSlug?: string; productSlug?: string }>();
+  const { user } = useAuth();
+  const isRetailer = user?.hasStoreProfile ?? false;
   const [quantity, setQuantity] = useState(1);
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchKey = productSlug ? productSlug : id;
+
   useEffect(() => {
-    if (!id) {
+    if (!fetchKey) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(false);
       return;
@@ -24,7 +29,10 @@ export function Product() {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    getProductById(id)
+    const fetchProduct = productSlug
+      ? () => getProductBySlug(productSlug, storeSlug)
+      : () => getProductById(fetchKey);
+    fetchProduct()
       .then((p) => {
         if (!cancelled) setProduct(p ?? null);
       })
@@ -35,10 +43,16 @@ export function Product() {
         if (!cancelled) setLoading(false);
       });
     return () => { cancelled = true; };
-  }, [id]);
+  }, [fetchKey, productSlug, storeSlug]);
 
   const specs = product?.specs?.length ? product.specs : defaultSpecs;
   const total = product ? (product.price * quantity + 0.1) * 1.01 : 0;
+  const sellerStoreSlug = storeSlug ?? product?.sellerStoreSlug;
+  const sellerStoreName = product?.sellerStoreName;
+  const providerId = product?.providerId;
+  const providerName = product?.providerName;
+  const providerSlug = product?.providerSlug;
+  // const storeListUrl = storeSlug ? `/tienda/${storeSlug}` : "/tienda";
 
   if (loading) {
     return (
@@ -54,7 +68,7 @@ export function Product() {
       <div className="min-h-screen bg-cosmos-bg py-8 md:py-12">
         <div className="w-full max-w-[1200px] mx-auto px-6">
           <p className="text-cosmos-muted mb-4">{error ?? "Producto no encontrado."}</p>
-          <Link to="/tienda" className="text-cosmos-accent hover:underline">Volver a la tienda</Link>
+          <Link to={storeSlug ? `/tienda/${storeSlug}` : "/tienda"} className="text-cosmos-accent hover:underline">Volver a la tienda</Link>
         </div>
       </div>
     );
@@ -67,6 +81,12 @@ export function Product() {
           <Link to="/" className="hover:text-cosmos-accent transition-colors">Inicio</Link>
           <span>/</span>
           <Link to="/tienda" className="hover:text-cosmos-accent transition-colors">Tienda</Link>
+          {sellerStoreSlug && (
+            <>
+              <span>/</span>
+              <Link to={`/tienda/${sellerStoreSlug}`} className="hover:text-cosmos-accent transition-colors">{sellerStoreName ?? "Tienda"}</Link>
+            </>
+          )}
           <span>/</span>
           <span className="text-cosmos-text line-clamp-1">{product.name}</span>
         </nav>
@@ -88,9 +108,39 @@ export function Product() {
           </div>
 
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-cosmos-muted m-0 mb-2">
-              {product.seller}
-            </p>
+            <div className="flex flex-wrap items-center gap-3 mb-2">
+              {sellerStoreSlug && sellerStoreName ? (
+                <Link
+                  to={`/tienda/${sellerStoreSlug}`}
+                  className="inline-flex items-center gap-2 text-sm text-cosmos-accent hover:underline"
+                >
+                  <Store size={16} />
+                  Vendido por {sellerStoreName}
+                </Link>
+              ) : (
+                <p className="text-xs font-medium uppercase tracking-wider text-cosmos-muted m-0">
+                  {product.seller}
+                </p>
+              )}
+              {(providerId || providerSlug) && providerName && (
+                <span className="text-cosmos-muted text-sm">
+                  {isRetailer ? (
+                    <Link
+                      to={`/retailer/proveedores/${providerSlug ?? providerId}`}
+                      className="inline-flex items-center gap-1.5 text-cosmos-accent hover:underline"
+                    >
+                      <Building2 size={14} />
+                      Proveedor: {providerName}
+                    </Link>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Building2 size={14} />
+                      Proveedor: {providerName}
+                    </span>
+                  )}
+                </span>
+              )}
+            </div>
             <h1 className="font-display font-semibold text-cosmos-text text-2xl md:text-3xl m-0 mb-3 leading-tight">
               {product.name}
             </h1>
