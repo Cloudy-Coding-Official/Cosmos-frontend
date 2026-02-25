@@ -29,6 +29,23 @@ export type OrderBackend = {
   orderItems?: OrderItemBackend[];
 };
 
+export type RetailerSale = {
+  id: string;
+  storeId: string | null;
+  buyerId: string | null;
+  totalAmount: string | number;
+  currency: string;
+  status: string;
+  createdAt: string;
+  buyer?: { id: string; firstName: string | null; lastName: string | null } | null;
+  orderItems?: OrderItemBackend[];
+};
+
+export async function getRetailerSales(): Promise<RetailerSale[]> {
+  const data = await apiRequest<RetailerSale[]>("/orders/retailer/sales", { method: "GET" });
+  return Array.isArray(data) ? data : [];
+}
+
 export async function getOrdersByBuyer(buyerId: string): Promise<OrderBackend[]> {
   return apiRequest<OrderBackend[]>(`/orders/buyer/${encodeURIComponent(buyerId)}`, {
     method: "GET",
