@@ -2,13 +2,21 @@ import { Link } from "react-router-dom";
 import { TrendingUp } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getProviderSales, type ProviderSale } from "../../api/providers";
+import { getMyTransactions, type WalletTransaction } from "../../api/wallet";
 import { getErrorMessage } from "../../api/client";
 
-const MOCK_TRANSACCIONES = [
-  { id: "T-201", fecha: "14 Feb", tipo: "Venta", monto: 220, estado: "Completada" },
-  { id: "T-202", fecha: "13 Feb", tipo: "Venta", monto: 450, estado: "Pendiente" },
-  { id: "T-203", fecha: "12 Feb", tipo: "Reembolso", monto: -22, estado: "Completada" },
-];
+function formatTransactionType(type: string): string {
+  const map: Record<string, string> = {
+    CREDIT: "Ingreso",
+    DEBIT: "Retiro",
+    ESCROW_LOCK: "Bloqueo en depósito",
+    ESCROW_RELEASE: "Liberación depósito",
+    COMMISSION: "Comisión",
+    FX_SPREAD: "Diferencial cambio",
+    SETTLEMENT: "Liquidación",
+  };
+  return map[type] ?? type;
+}
 
 function formatSaleDate(createdAt: string): string {
   const d = new Date(createdAt);
@@ -42,8 +50,11 @@ function productSummary(order: ProviderSale): string {
 export function ProveedoresVentas() {
   const [tab, setTab] = useState<"ventas" | "transacciones">("ventas");
   const [ventas, setVentas] = useState<ProviderSale[]>([]);
+  const [transacciones, setTransacciones] = useState<WalletTransaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingTx, setLoadingTx] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorTx, setErrorTx] = useState<string | null>(null);
 
   useEffect(() => {
     getProviderSales()
@@ -51,6 +62,17 @@ export function ProveedoresVentas() {
       .catch((err) => setError(getErrorMessage(err, "Error al cargar ventas")))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (tab !== "transacciones") return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoadingTx(true);
+    setErrorTx(null);
+    getMyTransactions()
+      .then(setTransacciones)
+      .catch((err) => setErrorTx(getErrorMessage(err, "Error al cargar transacciones")))
+      .finally(() => setLoadingTx(false));
+  }, [tab]);
 
   const now = new Date();
   const thisMonth = ventas.filter((v) => {
@@ -153,25 +175,58 @@ export function ProveedoresVentas() {
         )}
 
         {tab === "transacciones" && (
-          <div className="space-y-3">
-            {MOCK_TRANSACCIONES.map((t) => (
-              <div
-                key={t.id}
-                className="flex items-center justify-between p-4 bg-cosmos-surface border border-cosmos-border rounded-xl"
-              >
-                <div>
-                  <p className="font-medium text-cosmos-text m-0">{t.tipo}</p>
-                  <p className="text-sm text-cosmos-muted m-0">{t.fecha}</p>
-                </div>
-                <div className="text-right">
-                  <p className={`font-medium m-0 ${t.monto >= 0 ? "text-cosmos-text" : "text-red-400"}`}>
-                    {t.monto >= 0 ? "+" : ""}US$ {t.monto.toFixed(2)}
-                  </p>
-                  <p className="text-xs text-cosmos-muted m-0">{t.estado}</p>
-                </div>
+          <>
+            {errorTx && (
+              <div className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-sm text-red-400">
+                {errorTx}
               </div>
-            ))}
-          </div>
+            )}
+            {loadingTx ? (
+              <p className="text-cosmos-muted">Cargando transacciones…</p>
+            ) : transacciones.length === 0 ? (
+              <div className="p-8 bg-cosmos-surface border border-cosmos-border rounded-2xl text-center">
+                <TrendingUp size={40} className="text-cosmos-muted mx-auto mb-4" />
+                <p className="text-cosmos-muted m-0">Aún no tienes transacciones. Los movimientos de tu billetera aparecerán aquí.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {transacciones.map((t) => {
+                  const amount = typeof t.amount === "number" ? t.amount : parseFloat(String(t.amount));
+                  const currency = t.currency ?? "USD";
+                  return (
+                    <div
+                      key={t.id}
+                      className="flex items-center justify-between p-4 bg-cosmos-surface border border-cosmos-border rounded-xl"
+                    >
+                      <div>
+                        <p className="font-medium text-cosmos-text m-0">
+                          {formatTransactionType(t.type)}
+                          {t.description ? ` · ${t.description}` : ""}
+                        </p>
+                        <p className="text-sm text-cosmos-muted m-0">
+                          {new Date(t.createdAt).toLocaleDateString("es-AR", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p
+                          className={`font-medium m-0 ${
+                            amount >= 0 ? "text-cosmos-text" : "text-red-400"
+                          }`}
+                        >
+                          {amount >= 0 ? "+" : ""}
+                          {currency} {amount.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
