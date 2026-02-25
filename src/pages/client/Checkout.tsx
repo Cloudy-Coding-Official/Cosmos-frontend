@@ -2,7 +2,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { Shield, CreditCard, Truck, ChevronRight } from "lucide-react";
 import { useCart } from "../../context/CartContext";
-import { addOrder } from "../../data/orders";
+import { useAuth } from "../../context/AuthContext";
+import { createOrder } from "../../api/orders";
+import { getErrorMessage } from "../../api/client";
 import { ProductImage } from "../../components/ProductImage";
 
 const PASOS = [
@@ -13,6 +15,7 @@ const PASOS = [
 
 export function Checkout() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { items, isValidating, refreshCart, subtotal, fee, total, clearCart } = useCart();
   const [paso, setPaso] = useState(1);
   const [datos, setDatos] = useState({
@@ -25,6 +28,7 @@ export function Checkout() {
     metodoPago: "cosmos-pay" as "cosmos-pay" | "tarjeta",
   });
   const [enviando, setEnviando] = useState(false);
+  const [errorOrden, setErrorOrden] = useState<string | null>(null);
   const hasRefreshed = useRef(false);
 
   useEffect(() => {
@@ -73,20 +77,53 @@ export function Checkout() {
   };
 
   const handleConfirmar = async () => {
+    if (!user?.buyerProfileId) {
+      setErrorOrden("Necesitás iniciar sesión con una cuenta de comprador para finalizar.");
+      return;
+    }
+    setErrorOrden(null);
     setEnviando(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    const direccion = `${datos.direccion}, ${datos.ciudad}, ${datos.codigoPostal}, ${datos.pais}`;
-    const order = addOrder({
-      fecha: new Date().toISOString(),
-      monto: total,
-      items: items.map((i) => ({ id: i.productId, name: i.name, price: i.price, quantity: i.quantity })),
-      estado: "comprado",
-      tienda: items[0]?.storeSlug ?? "Tienda",
-      direccionEnvio: direccion,
-    });
-    clearCart();
-    setEnviando(false);
-    navigate("/perfil/compras/" + order.id);
+    try {
+      const shippingInfo = {
+        recipientName: datos.nombre,
+        email: datos.email,
+        address: datos.direccion,
+        city: datos.ciudad,
+        postalCode: datos.codigoPostal,
+        country: datos.pais,
+      };
+      const byStore = new Map<string, typeof items>();
+      for (const item of items) {
+        const key = `${item.storeId}:${item.providerId}`;
+        if (!byStore.has(key)) byStore.set(key, []);
+        byStore.get(key)!.push(item);
+      }
+      const orderIds: string[] = [];
+      for (const [, groupItems] of byStore) {
+        const storeId = groupItems[0].storeId;
+        const providerId = groupItems[0].providerId;
+        const currency = groupItems[0].currency ?? "USD";
+        const order = await createOrder({
+          buyerId: user.buyerProfileId,
+          storeId,
+          providerId,
+          items: groupItems.map((i) => ({
+            productId: i.productId,
+            quantity: i.quantity,
+            unitPrice: i.price,
+          })),
+          currency,
+          shippingInfo,
+        });
+        orderIds.push(order.id);
+      }
+      clearCart();
+      navigate("/perfil/compras/" + orderIds[0]);
+    } catch (err) {
+      setErrorOrden(getErrorMessage(err, "Error al crear el pedido. Intentá de nuevo."));
+    } finally {
+      setEnviando(false);
+    }
   };
 
   return (
@@ -300,6 +337,11 @@ export function Checkout() {
                 <span>{(items[0]?.currency ?? "USD")} {total.toFixed(2)}</span>
               </div>
 
+              {errorOrden && (
+                <div className="mt-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-sm text-red-400">
+                  {errorOrden}
+                </div>
+              )}
               <div className="flex gap-3 mt-6">
                 {paso > 1 && (
                   <button
