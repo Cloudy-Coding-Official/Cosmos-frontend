@@ -7,6 +7,7 @@ type ProductBackend = {
   suggestedPrice: number | string;
   basePrice?: number | string;
   wholesalePrice?: number | string;
+  wholesaleMinQuantity?: number;
   currency?: string;
   imageUrl?: string | null;
   rating?: number | string | null;
@@ -190,6 +191,7 @@ export type CreateProductPayload = {
   sku: string;
   basePrice: number;
   wholesalePrice: number;
+  wholesaleMinQuantity?: number;
   suggestedPrice: number;
   currency?: string;
   stock?: number;
@@ -223,6 +225,7 @@ export async function getProductForEdit(id: string): Promise<ProductForEdit | nu
       sku: data.sku ?? "",
       basePrice: toNumber(data.basePrice),
       wholesalePrice: toNumber(data.wholesalePrice),
+      wholesaleMinQuantity: data.wholesaleMinQuantity ?? 1,
       suggestedPrice: toNumber(data.suggestedPrice),
       currency: data.currency ?? "USD",
       stock: data.stock ?? 0,
