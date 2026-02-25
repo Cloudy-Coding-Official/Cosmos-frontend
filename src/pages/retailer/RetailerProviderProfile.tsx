@@ -102,6 +102,9 @@ export function RetailerProviderProfile() {
     myPendingRequests.find((r) => r.productId === productId && r.storeId === storeId);
 
   const requireApproval = provider?.requireStoreApproval !== false;
+  const whitelistedStoreIds = provider?.whitelistedStoreIds ?? [];
+  const requireApprovalForStore = (storeId: string) =>
+    requireApproval && !whitelistedStoreIds.includes(storeId);
 
   const openManageModal = (productId: string, productName: string, suggestedPrice: number) => {
     setManageModal({ productId, productName, suggestedPrice });
@@ -134,7 +137,7 @@ export function RetailerProviderProfile() {
       await addProductToStore(storeId, manageModal.productId, price);
       loadStoresAndProducts();
     } catch (err) {
-      setManageError(getErrorMessage(err, requireApproval ? "No se pudo enviar la solicitud" : "No se pudo agregar el producto"));
+      setManageError(getErrorMessage(err, requireApprovalForStore(storeId) ? "No se pudo enviar la solicitud" : "No se pudo agregar el producto"));
     } finally {
       setAddingToStoreId(null);
     }
@@ -266,7 +269,9 @@ export function RetailerProviderProfile() {
                 </tr>
               </thead>
               <tbody>
-                {products.map((p) => (
+                {products.map((p) => {
+                  const minQty = (p as { wholesaleMinQuantity?: number }).wholesaleMinQuantity;
+                  return (
                   <tr
                     key={p.id}
                     className="border-b border-cosmos-border/60 hover:bg-cosmos-surface/50 transition-colors"
@@ -288,6 +293,11 @@ export function RetailerProviderProfile() {
                     <td className="py-4 pr-4 text-sm text-cosmos-muted">{p.category}</td>
                     <td className="py-4 pr-4 text-cosmos-text font-medium">
                       {toNum(p.wholesalePrice).toFixed(2)}
+                      {minQty != null && minQty > 1 && (
+                        <span className="block text-xs font-normal text-cosmos-muted">
+                          desde {minQty} uds
+                        </span>
+                      )}
                     </td>
                     <td className="py-4 pr-4 text-cosmos-text">
                       {toNum(p.suggestedPrice).toFixed(2)}
@@ -315,7 +325,7 @@ export function RetailerProviderProfile() {
                       )}
                     </td>
                   </tr>
-                ))}
+                ); })}
               </tbody>
             </table>
           </div>
@@ -433,7 +443,7 @@ export function RetailerProviderProfile() {
                           disabled={busy || !Number.isFinite(parseFloat(priceByStoreId[store.id] ?? "")) || parseFloat(priceByStoreId[store.id] ?? "0") < 0}
                           className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-cosmos-accent border border-cosmos-accent/50 rounded-lg hover:bg-cosmos-accent/10 disabled:opacity-50"
                         >
-                          {isAdding ? (requireApproval ? "Enviando…" : "Agregando…") : requireApproval ? "Solicitar acceso" : "Agregar"}
+                          {isAdding ? (requireApprovalForStore(store.id) ? "Enviando…" : "Agregando…") : requireApprovalForStore(store.id) ? "Solicitar acceso" : "Agregar"}
                         </button>
                       </div>
                     )}
