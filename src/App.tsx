@@ -31,6 +31,8 @@ import { ProveedoresProductoNuevo } from "./pages/proveedores/ProveedoresProduct
 import { ProveedoresProductoEditar } from "./pages/proveedores/ProveedoresProductoEditar";
 import { ProveedoresPerfil } from "./pages/proveedores/ProveedoresPerfil";
 import { ProveedoresRetailers } from "./pages/proveedores/ProveedoresRetailers";
+import { ProveedoresSolicitudes } from "./pages/proveedores/ProveedoresSolicitudes";
+import { ProveedoresTiendasAutorizadas } from "./pages/proveedores/ProveedoresTiendasAutorizadas";
 import { ProveedoresStoreOrders } from "./pages/proveedores/ProveedoresStoreOrders";
 import { ProveedoresVentas } from "./pages/proveedores/ProveedoresVentas";
 import { Vender } from "./pages/Vender";
@@ -72,6 +74,8 @@ export default function App() {
               <Route path="productos/nuevo" element={<ProveedoresProductoNuevo />} />
               <Route path="productos/editar/:id" element={<ProveedoresProductoEditar />} />
               <Route path="perfil" element={<ProveedoresPerfil />} />
+              <Route path="solicitudes" element={<ProveedoresSolicitudes />} />
+              <Route path="tiendas-autorizadas" element={<ProveedoresTiendasAutorizadas />} />
               <Route path="retailers" element={<ProveedoresRetailers />} />
               <Route path="retailers/:storeId" element={<ProveedoresStoreOrders />} />
               <Route path="ventas" element={<ProveedoresVentas />} />
