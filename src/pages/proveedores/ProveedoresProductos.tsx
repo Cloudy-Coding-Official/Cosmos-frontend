@@ -152,7 +152,7 @@ export function ProveedoresProductos() {
                     {product.name}
                   </h3>
                   <p className="text-cosmos-text font-medium m-0 mb-3">
-                    US$ {product.price.toFixed(2)}
+                    US$ {(product.basePrice ?? product.price).toFixed(2)}
                   </p>
                   <div className="mt-auto flex gap-2">
                     <button
