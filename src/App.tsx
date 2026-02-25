@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { TrustlessWorkProviders } from "./components/providers/TrustlessWorkProviders";
 import { Layout } from "./components/Layout";
@@ -16,12 +16,14 @@ import { CheckoutSuccess } from "./pages/client/CheckoutSuccess";
 import { Profile } from "./pages/Profile";
 import { ProfileWallet } from "./pages/ProfileWallet";
 import { PurchaseTracking } from "./pages/client/PurchaseTracking";
+import { RetailerFirstStoreGate } from "./pages/retailer/RetailerFirstStoreGate";
 import { RetailerDashboard } from "./pages/retailer/RetailerDashboard";
-import { RetailerProducts } from "./pages/retailer/RetailerProducts";
 import { RetailerSuppliers } from "./pages/retailer/RetailerSuppliers";
 import { RetailerProviderProfile } from "./pages/retailer/RetailerProviderProfile";
 import { RetailerStores } from "./pages/retailer/RetailerStores";
+import { RetailerStoreProducts } from "./pages/retailer/RetailerStoreProducts";
 import { RetailerVentas } from "./pages/retailer/RetailerVentas";
+import { ProveedorCompleteProfileGate } from "./pages/proveedores/ProveedorCompleteProfileGate";
 import { ProveedoresDashboard } from "./pages/proveedores/ProveedoresDashboard";
 import { ProveedoresProductos } from "./pages/proveedores/ProveedoresProductos";
 import { ProveedoresProductoNuevo } from "./pages/proveedores/ProveedoresProductoNuevo";
@@ -49,6 +51,8 @@ export default function App() {
           <Route path="onboard" element={<Onboard />} />
           <Route path="restablecer-contraseña" element={<ResetPassword />} />
           <Route path="tienda" element={<Shop />} />
+          <Route path="tienda/:storeSlug" element={<Shop />} />
+          <Route path="tienda/:storeSlug/producto/:productSlug" element={<Product />} />
           <Route path="producto/:id" element={<Product />} />
           <Route path="carrito" element={<Cart />} />
           <Route path="checkout" element={<Checkout />} />
@@ -59,21 +63,26 @@ export default function App() {
           <Route path="vender" element={<Vender />} />
           <Route path="vender/sin-stock" element={<VenderSinStock />} />
           <Route path="proveedores" element={<ProtectedRoute allowedRoles={["proveedor"]} allowPreview />}>
-            <Route index element={<ProveedoresDashboard />} />
-            <Route path="productos" element={<ProveedoresProductos />} />
-            <Route path="productos/nuevo" element={<ProveedoresProductoNuevo />} />
-            <Route path="productos/editar/:id" element={<ProveedoresProductoEditar />} />
-            <Route path="perfil" element={<ProveedoresPerfil />} />
-            <Route path="retailers" element={<ProveedoresRetailers />} />
-            <Route path="ventas" element={<ProveedoresVentas />} />
+            <Route element={<ProveedorCompleteProfileGate />}>
+              <Route index element={<ProveedoresDashboard />} />
+              <Route path="productos" element={<ProveedoresProductos />} />
+              <Route path="productos/nuevo" element={<ProveedoresProductoNuevo />} />
+              <Route path="productos/editar/:id" element={<ProveedoresProductoEditar />} />
+              <Route path="perfil" element={<ProveedoresPerfil />} />
+              <Route path="retailers" element={<ProveedoresRetailers />} />
+              <Route path="ventas" element={<ProveedoresVentas />} />
+            </Route>
           </Route>
           <Route path="retailer" element={<ProtectedRoute allowedRoles={["retailer"]} allowPreview />}>
-            <Route index element={<RetailerDashboard />} />
-            <Route path="productos" element={<RetailerProducts />} />
-            <Route path="proveedores" element={<RetailerSuppliers />} />
-            <Route path="proveedores/:id" element={<RetailerProviderProfile />} />
-            <Route path="tiendas" element={<RetailerStores />} />
-            <Route path="ventas" element={<RetailerVentas />} />
+            <Route element={<RetailerFirstStoreGate />}>
+              <Route index element={<RetailerDashboard />} />
+              <Route path="productos" element={<Navigate to="/retailer/tiendas" replace />} />
+              <Route path="proveedores" element={<RetailerSuppliers />} />
+              <Route path="proveedores/:id" element={<RetailerProviderProfile />} />
+              <Route path="tiendas" element={<RetailerStores />} />
+              <Route path="tiendas/:storeSlug/productos" element={<RetailerStoreProducts />} />
+              <Route path="ventas" element={<RetailerVentas />} />
+            </Route>
           </Route>
           <Route path="perfil" element={<ProtectedRoute />}>
             <Route index element={<Profile />} />
