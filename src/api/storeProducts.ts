@@ -89,3 +89,28 @@ export async function removeProductFromStore(
     { method: "DELETE" }
   );
 }
+
+export type StoreProductRequestItem = {
+  id: string;
+  storeId: string;
+  productId: string;
+  requestedPrice: number | string;
+  currency: string;
+  status: string;
+  createdAt: string;
+  product: {
+    id: string;
+    name: string;
+    sku?: string;
+    provider?: { id: string; legalName: string };
+  };
+  store: { id: string; name: string; slug?: string };
+};
+
+export async function getMyPendingRequests(): Promise<StoreProductRequestItem[]> {
+  const data = await apiRequest<StoreProductRequestItem[]>(
+    "/store-products/my-pending-requests",
+    { method: "GET" }
+  );
+  return Array.isArray(data) ? data : [];
+}
