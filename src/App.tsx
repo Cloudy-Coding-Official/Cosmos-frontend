@@ -30,6 +30,7 @@ import { ProveedoresProductoNuevo } from "./pages/proveedores/ProveedoresProduct
 import { ProveedoresProductoEditar } from "./pages/proveedores/ProveedoresProductoEditar";
 import { ProveedoresPerfil } from "./pages/proveedores/ProveedoresPerfil";
 import { ProveedoresRetailers } from "./pages/proveedores/ProveedoresRetailers";
+import { ProveedoresStoreOrders } from "./pages/proveedores/ProveedoresStoreOrders";
 import { ProveedoresVentas } from "./pages/proveedores/ProveedoresVentas";
 import { Vender } from "./pages/Vender";
 import { VenderSinStock } from "./pages/VenderSinStock";
@@ -70,6 +71,7 @@ export default function App() {
               <Route path="productos/editar/:id" element={<ProveedoresProductoEditar />} />
               <Route path="perfil" element={<ProveedoresPerfil />} />
               <Route path="retailers" element={<ProveedoresRetailers />} />
+              <Route path="retailers/:storeId" element={<ProveedoresStoreOrders />} />
               <Route path="ventas" element={<ProveedoresVentas />} />
             </Route>
           </Route>
