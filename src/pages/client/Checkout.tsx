@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Shield, CreditCard, Truck, ChevronRight } from "lucide-react";
 import { useCart } from "../../context/CartContext";
 import { addOrder } from "../../data/orders";
@@ -13,7 +13,7 @@ const PASOS = [
 
 export function Checkout() {
   const navigate = useNavigate();
-  const { items, subtotal, fee, total, clearCart } = useCart();
+  const { items, isValidating, refreshCart, subtotal, fee, total, clearCart } = useCart();
   const [paso, setPaso] = useState(1);
   const [datos, setDatos] = useState({
     nombre: "",
@@ -25,17 +25,30 @@ export function Checkout() {
     metodoPago: "cosmos-pay" as "cosmos-pay" | "tarjeta",
   });
   const [enviando, setEnviando] = useState(false);
+  const hasRefreshed = useRef(false);
 
   useEffect(() => {
+    if (items.length > 0 && !hasRefreshed.current) {
+      hasRefreshed.current = true;
+      refreshCart();
+    }
     if (items.length === 0) {
+      hasRefreshed.current = false;
+    }
+  }, [items.length, refreshCart]);
+
+  useEffect(() => {
+    if (items.length === 0 && !isValidating) {
       navigate("/carrito", { replace: true });
     }
-  }, [items.length, navigate]);
+  }, [items.length, isValidating, navigate]);
 
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-cosmos-bg py-8 md:py-12 flex items-center justify-center">
-        <p className="text-cosmos-muted">Redirigiendo al carrito…</p>
+        <p className="text-cosmos-muted">
+          {isValidating ? "Actualizando carrito…" : "Redirigiendo al carrito…"}
+        </p>
       </div>
     );
   }

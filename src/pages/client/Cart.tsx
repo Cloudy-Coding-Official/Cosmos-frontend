@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { Trash2, ShoppingBag, Shield } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { Trash2, ShoppingBag, Shield, Loader2 } from "lucide-react";
 import { useCart } from "../../context/CartContext";
 import { ProductImage } from "../../components/ProductImage";
 
@@ -11,10 +12,21 @@ function productLink(item: { productId: string; productSlug?: string; storeSlug?
 }
 
 export function Cart() {
-  const { items, removeItem, updateQuantity, subtotal, fee, total, itemCount } = useCart();
+  const { items, isValidating, refreshCart, removeItem, updateQuantity, subtotal, fee, total, itemCount } = useCart();
   const currency = items[0]?.currency ?? "USD";
+  const hasRefreshed = useRef(false);
 
-  if (items.length === 0) {
+  useEffect(() => {
+    if (items.length > 0 && !hasRefreshed.current) {
+      hasRefreshed.current = true;
+      refreshCart();
+    }
+    if (items.length === 0) {
+      hasRefreshed.current = false;
+    }
+  }, [items.length, refreshCart]);
+
+  if (items.length === 0 && !isValidating) {
     return (
       <div className="min-h-screen bg-cosmos-bg py-8 md:py-12">
         <div className="w-full max-w-[1200px] mx-auto px-6">
@@ -56,10 +68,17 @@ export function Cart() {
               Tu carrito
             </h1>
             <p className="text-cosmos-muted text-sm m-0">
-              {itemCount} {itemCount === 1 ? "producto" : "productos"}
+              {isValidating ? "Actualizando precios y disponibilidad…" : `${itemCount} ${itemCount === 1 ? "producto" : "productos"}`}
             </p>
           </div>
         </div>
+
+        {isValidating && (
+          <div className="mb-6 flex items-center gap-2 text-sm text-cosmos-muted">
+            <Loader2 size={18} className="animate-spin shrink-0" />
+            <span>Verificando productos y precios actuales…</span>
+          </div>
+        )}
 
         <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
           <div className="flex flex-col gap-4">

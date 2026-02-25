@@ -6,10 +6,19 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   type ReactNode,
 } from "react";
+import { getProductBackendById } from "../api/products";
 
 const STORAGE_KEY = "cosmos_cart";
+
+function toNumber(v: number | string | null | undefined): number {
+  if (v == null) return 0;
+  if (typeof v === "number") return v;
+  const n = parseFloat(String(v));
+  return Number.isFinite(n) ? n : 0;
+}
 
 export type CartItem = {
   productId: string;
@@ -77,10 +86,12 @@ export type AddToCartPayload = {
 
 type CartContextType = {
   items: CartItem[];
+  isValidating: boolean;
   addItem: (payload: AddToCartPayload) => void;
   removeItem: (productId: string, storeId: string) => void;
   updateQuantity: (productId: string, storeId: string, quantity: number) => void;
   clearCart: () => void;
+  refreshCart: () => Promise<void>;
   subtotal: number;
   fee: number;
   total: number;
@@ -149,6 +160,54 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems([]);
   }, []);
 
+  const [isValidating, setIsValidating] = useState(false);
+  const itemsRef = useRef<CartItem[]>(items);
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
+
+  const refreshCart = useCallback(async () => {
+    const current = itemsRef.current;
+    const valid = current.filter(
+      (i) =>
+        i.productId?.length > 0 &&
+        i.storeId?.length > 0 &&
+        i.providerId?.length > 0 &&
+        typeof i.quantity === "number" &&
+        i.quantity >= 1
+    );
+    if (valid.length === 0) return;
+    setIsValidating(true);
+    try {
+      const updated: CartItem[] = [];
+      for (const item of valid) {
+        const product = await getProductBackendById(item.productId);
+        if (!product?.storeProducts?.length) continue;
+        const storeProduct = product.storeProducts.find(
+          (sp) => sp.store?.id === item.storeId
+        );
+        if (!storeProduct?.store) continue;
+        if (product.provider?.id && product.provider.id !== item.providerId) continue;
+        const price = toNumber(storeProduct.price ?? product.suggestedPrice);
+        updated.push({
+          productId: product.id,
+          storeId: storeProduct.store.id,
+          providerId: product.provider?.id ?? item.providerId,
+          quantity: Math.min(Math.max(1, Math.floor(item.quantity)), 99),
+          name: product.name ?? item.name,
+          price,
+          image: product.imageUrl ?? item.image,
+          productSlug: product.slug ?? item.productSlug,
+          storeSlug: storeProduct.store.slug ?? item.storeSlug,
+          currency: product.currency ?? item.currency ?? "USD",
+        });
+      }
+      setItems(updated);
+    } finally {
+      setIsValidating(false);
+    }
+  }, []);
+
   const subtotal = useMemo(() => getCartSubtotal(items), [items]);
   const fee = useMemo(() => getCartFee(items), [items]);
   const total = useMemo(() => getCartTotal(items), [items]);
@@ -157,16 +216,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const value = useMemo<CartContextType>(
     () => ({
       items,
+      isValidating,
       addItem,
       removeItem,
       updateQuantity,
       clearCart,
+      refreshCart,
       subtotal,
       fee,
       total,
       itemCount,
     }),
-    [items, addItem, removeItem, updateQuantity, clearCart, subtotal, fee, total, itemCount]
+    [items, isValidating, addItem, removeItem, updateQuantity, clearCart, refreshCart, subtotal, fee, total, itemCount]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

@@ -148,18 +148,25 @@ export async function getProductCategories(forPublicShop?: boolean): Promise<str
   return list.map((r) => r.category);
 }
 
-export async function getProductById(id: string): Promise<Product | null> {
+export type ProductBackendWithStores = ProductBackend;
+
+export async function getProductBackendById(id: string): Promise<ProductBackendWithStores | null> {
   try {
     const data = await apiRequest<ProductBackend>(`/products/${encodeURIComponent(id)}`, {
       method: "GET",
       skipAuth: true,
     });
-    return data ? mapBackendToProduct(data) : null;
+    return data ?? null;
   } catch (err) {
     const e = err as { status?: number };
     if (e.status === 404) return null;
     throw err;
   }
+}
+
+export async function getProductById(id: string): Promise<Product | null> {
+  const data = await getProductBackendById(id);
+  return data ? mapBackendToProduct(data) : null;
 }
 
 export async function getProductBySlug(slug: string, storeSlug?: string): Promise<Product | null> {
