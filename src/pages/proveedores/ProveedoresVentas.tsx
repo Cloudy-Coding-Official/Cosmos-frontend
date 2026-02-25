@@ -1,12 +1,8 @@
 import { Link } from "react-router-dom";
 import { TrendingUp } from "lucide-react";
-import { useState } from "react";
-
-const MOCK_VENTAS = [
-  { id: "V-101", fecha: "14 Feb", retailer: "TechStore", producto: "Cargador 65W x 10", total: 220, estado: "Entregado" },
-  { id: "V-102", fecha: "13 Feb", retailer: "ModaLatam", producto: "Camisetas x 50", total: 450, estado: "En camino" },
-  { id: "V-103", fecha: "11 Feb", retailer: "DeportesYA", producto: "Zapatillas x 5", total: 380, estado: "Entregado" },
-];
+import { useState, useEffect } from "react";
+import { getProviderSales, type ProviderSale } from "../../api/providers";
+import { getErrorMessage } from "../../api/client";
 
 const MOCK_TRANSACCIONES = [
   { id: "T-201", fecha: "14 Feb", tipo: "Venta", monto: 220, estado: "Completada" },
@@ -14,9 +10,54 @@ const MOCK_TRANSACCIONES = [
   { id: "T-203", fecha: "12 Feb", tipo: "Reembolso", monto: -22, estado: "Completada" },
 ];
 
+function formatSaleDate(createdAt: string): string {
+  const d = new Date(createdAt);
+  return d.toLocaleDateString("es-AR", { day: "numeric", month: "short" });
+}
+
+function formatOrderStatus(status: string): string {
+  const map: Record<string, string> = {
+    PENDING: "Pendiente",
+    FUNDED: "Pagado",
+    ESCROW_DEPLOYED: "En depósito",
+    SHIPPED: "Enviado",
+    DELIVERED: "Entregado",
+    RELEASED: "Completado",
+    CANCELLED: "Cancelado",
+    DISPUTED: "En disputa",
+  };
+  return map[status] ?? status;
+}
+
+function productSummary(order: ProviderSale): string {
+  const items = order.orderItems ?? [];
+  if (items.length === 0) return "Pedido";
+  if (items.length === 1) {
+    const name = items[0].product?.name ?? "Producto";
+    return `${name} x ${items[0].quantity}`;
+  }
+  return items.map((i) => `${i.product?.name ?? "Producto"} x ${i.quantity}`).join(", ");
+}
+
 export function ProveedoresVentas() {
   const [tab, setTab] = useState<"ventas" | "transacciones">("ventas");
-  const totalVentas = MOCK_VENTAS.reduce((acc, v) => acc + v.total, 0);
+  const [ventas, setVentas] = useState<ProviderSale[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getProviderSales()
+      .then(setVentas)
+      .catch((err) => setError(getErrorMessage(err, "Error al cargar ventas")))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const now = new Date();
+  const thisMonth = ventas.filter((v) => {
+    const d = new Date(v.createdAt);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+  const totalEsteMes = thisMonth.reduce((acc, v) => acc + Number(v.totalAmount), 0);
 
   return (
     <div className="min-h-screen bg-cosmos-bg py-8 md:py-12">
@@ -43,9 +84,17 @@ export function ProveedoresVentas() {
           </div>
           <div className="p-4 bg-cosmos-surface border border-cosmos-border rounded-xl">
             <p className="text-xs text-cosmos-muted m-0">Este mes</p>
-            <p className="font-semibold text-cosmos-text text-xl m-0">US$ {totalVentas.toFixed(2)}</p>
+            <p className="font-semibold text-cosmos-text text-xl m-0">
+              {ventas.length > 0 ? `${ventas[0].currency ?? "USD"} ${totalEsteMes.toFixed(2)}` : "—"}
+            </p>
           </div>
         </div>
+
+        {error && (
+          <div className="mb-6 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-sm text-red-400">
+            {error}
+          </div>
+        )}
 
         <div className="flex gap-6 mb-6">
           <button
@@ -69,25 +118,38 @@ export function ProveedoresVentas() {
         </div>
 
         {tab === "ventas" && (
-          <div className="space-y-3">
-            {MOCK_VENTAS.map((v) => (
-              <div
-                key={v.id}
-                className="flex items-center justify-between p-4 bg-cosmos-surface border border-cosmos-border rounded-xl"
-              >
-                <div>
-                  <p className="font-medium text-cosmos-text m-0">
-                    {v.retailer} · {v.producto}
-                  </p>
-                  <p className="text-sm text-cosmos-muted m-0">{v.fecha}</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-cosmos-text m-0">US$ {v.total.toFixed(2)}</p>
-                  <p className="text-xs text-cosmos-muted m-0">{v.estado}</p>
-                </div>
+          <>
+            {loading ? (
+              <p className="text-cosmos-muted">Cargando ventas…</p>
+            ) : ventas.length === 0 ? (
+              <div className="p-8 bg-cosmos-surface border border-cosmos-border rounded-2xl text-center">
+                <TrendingUp size={40} className="text-cosmos-muted mx-auto mb-4" />
+                <p className="text-cosmos-muted m-0">Aún no tienes ventas. Los pedidos de retailers aparecerán aquí.</p>
               </div>
-            ))}
-          </div>
+            ) : (
+              <div className="space-y-3">
+                {ventas.map((v) => (
+                  <div
+                    key={v.id}
+                    className="flex items-center justify-between p-4 bg-cosmos-surface border border-cosmos-border rounded-xl"
+                  >
+                    <div>
+                      <p className="font-medium text-cosmos-text m-0">
+                        {v.store?.name ?? "Tienda"} · {productSummary(v)}
+                      </p>
+                      <p className="text-sm text-cosmos-muted m-0">{formatSaleDate(v.createdAt)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium text-cosmos-text m-0">
+                        {v.currency} {Number(v.totalAmount).toFixed(2)}
+                      </p>
+                      <p className="text-xs text-cosmos-muted m-0">{formatOrderStatus(v.status)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
 
         {tab === "transacciones" && (
