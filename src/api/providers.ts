@@ -16,6 +16,7 @@ export type ProviderProfile = {
   taxId: string;
   country: string;
   verified: boolean;
+  requireStoreApproval?: boolean;
   createdAt: string;
   updatedAt: string;
   products?: Array<{
@@ -69,6 +70,7 @@ export type UpdateProviderPayload = {
   legalName?: string;
   taxId?: string;
   country?: string;
+  requireStoreApproval?: boolean;
 };
 
 export async function updateProvider(
@@ -145,4 +147,62 @@ export async function getProviderSales(): Promise<ProviderSale[]> {
     method: "GET",
   });
   return Array.isArray(data) ? data : [];
+}
+
+export type ProviderStoreRequestItem = {
+  id: string;
+  storeId: string;
+  productId: string;
+  requestedPrice: number | string;
+  currency: string;
+  status: string;
+  createdAt: string;
+  product: { id: string; name: string; sku: string; imageUrl: string | null };
+  store: { id: string; name: string; slug: string };
+};
+
+export async function getProviderStoreRequests(): Promise<ProviderStoreRequestItem[]> {
+  const data = await apiRequest<ProviderStoreRequestItem[]>(
+    "/providers/me/store-requests",
+    { method: "GET" }
+  );
+  return Array.isArray(data) ? data : [];
+}
+
+export async function approveProviderStoreRequest(
+  requestId: string,
+  options?: { whitelist?: boolean }
+): Promise<{ message: string; whitelisted?: boolean }> {
+  return apiRequest(`/providers/me/store-requests/${encodeURIComponent(requestId)}/approve`, {
+    method: "POST",
+    body: JSON.stringify(options ?? {}),
+  });
+}
+
+export async function rejectProviderStoreRequest(requestId: string): Promise<{ message: string }> {
+  return apiRequest(`/providers/me/store-requests/${encodeURIComponent(requestId)}/reject`, {
+    method: "POST",
+  });
+}
+
+export type ProviderWhitelistedStore = {
+  id: string;
+  storeId: string;
+  providerId: string;
+  createdAt: string;
+  store: { id: string; name: string; slug: string };
+};
+
+export async function getProviderWhitelistedStores(): Promise<ProviderWhitelistedStore[]> {
+  const data = await apiRequest<ProviderWhitelistedStore[]>(
+    "/providers/me/whitelisted-stores",
+    { method: "GET" }
+  );
+  return Array.isArray(data) ? data : [];
+}
+
+export async function removeProviderWhitelistedStore(storeId: string): Promise<{ message: string }> {
+  return apiRequest(`/providers/me/whitelisted-stores/${encodeURIComponent(storeId)}`, {
+    method: "DELETE",
+  });
 }
