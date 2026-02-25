@@ -162,6 +162,33 @@ export function ProveedoresStoreOrders() {
                     ))}
                   </ul>
                 )}
+                {order.shippingInfo && typeof order.shippingInfo === "object" && (
+                  <div className="mt-3 pt-3 border-t border-cosmos-border">
+                    <p className="text-xs font-medium uppercase tracking-wider text-cosmos-muted m-0 mb-2">
+                      Datos de envío (para gestionar el pedido)
+                    </p>
+                    <div className="text-sm text-cosmos-text space-y-0.5">
+                      {"recipientName" in order.shippingInfo && order.shippingInfo.recipientName && (
+                        <p className="m-0">Destinatario: {String(order.shippingInfo.recipientName)}</p>
+                      )}
+                      {"email" in order.shippingInfo && order.shippingInfo.email && (
+                        <p className="m-0">Email: {String(order.shippingInfo.email)}</p>
+                      )}
+                      {"address" in order.shippingInfo && order.shippingInfo.address && (
+                        <p className="m-0">Dirección: {String(order.shippingInfo.address)}</p>
+                      )}
+                      {("city" in order.shippingInfo && order.shippingInfo.city) || ("postalCode" in order.shippingInfo && order.shippingInfo.postalCode) || ("country" in order.shippingInfo && order.shippingInfo.country) ? (
+                        <p className="m-0">
+                          {[
+                            "city" in order.shippingInfo && order.shippingInfo.city ? String(order.shippingInfo.city) : "",
+                            "postalCode" in order.shippingInfo && order.shippingInfo.postalCode ? String(order.shippingInfo.postalCode) : "",
+                            "country" in order.shippingInfo && order.shippingInfo.country ? String(order.shippingInfo.country) : "",
+                          ].filter(Boolean).join(", ")}
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
