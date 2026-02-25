@@ -80,3 +80,50 @@ export async function updateProvider(
     body: JSON.stringify(payload),
   });
 }
+
+export type ProviderRetailerStoreProduct = {
+  productId: string;
+  productName: string;
+  sku: string;
+};
+
+export type ProviderRetailerStore = {
+  storeId: string;
+  storeName: string;
+  storeSlug: string;
+  productCount: number;
+  orderCount: number;
+  products: ProviderRetailerStoreProduct[];
+};
+
+export async function getProviderRetailerStores(): Promise<ProviderRetailerStore[]> {
+  const data = await apiRequest<ProviderRetailerStore[]>("/providers/me/retailer-stores", {
+    method: "GET",
+  });
+  return Array.isArray(data) ? data : [];
+}
+
+export async function getProviderStoreOrders(storeId: string): Promise<ProviderStoreOrder[]> {
+  const data = await apiRequest<ProviderStoreOrder[]>(
+    `/providers/me/retailer-stores/${encodeURIComponent(storeId)}/orders`,
+    { method: "GET" }
+  );
+  return Array.isArray(data) ? data : [];
+}
+
+export type ProviderStoreOrder = {
+  id: string;
+  storeId: string | null;
+  totalAmount: string | number;
+  currency: string;
+  status: string;
+  createdAt: string;
+  store?: { id: string; name: string; slug: string };
+  orderItems?: Array<{
+    id: string;
+    quantity: number;
+    unitPrice: string | number;
+    subtotal: string | number;
+    product?: { id: string; name: string };
+  }>;
+};
