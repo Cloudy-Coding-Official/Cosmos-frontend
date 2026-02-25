@@ -3,6 +3,7 @@ import { apiRequest } from "./client";
 export type ProviderCatalogItem = {
   id: string;
   legalName: string;
+  slug: string;
   country: string;
   verified: boolean;
   _count: { products: number };
@@ -11,6 +12,7 @@ export type ProviderCatalogItem = {
 export type ProviderProfile = {
   id: string;
   legalName: string;
+  slug: string;
   taxId: string;
   country: string;
   verified: boolean;
@@ -40,6 +42,19 @@ export async function getProvidersCatalog(): Promise<ProviderCatalogItem[]> {
 export async function getProviderById(id: string): Promise<ProviderProfile | null> {
   try {
     const data = await apiRequest<ProviderProfile>(`/providers/${encodeURIComponent(id)}`, {
+      method: "GET",
+    });
+    return data ?? null;
+  } catch (err) {
+    const e = err as { status?: number };
+    if (e.status === 404) return null;
+    throw err;
+  }
+}
+
+export async function getProviderBySlug(slug: string): Promise<ProviderProfile | null> {
+  try {
+    const data = await apiRequest<ProviderProfile>(`/providers/by-slug/${encodeURIComponent(slug)}`, {
       method: "GET",
     });
     return data ?? null;
