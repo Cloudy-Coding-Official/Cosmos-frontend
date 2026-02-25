@@ -28,6 +28,7 @@ export type ProviderProfile = {
     suggestedPrice: number | string;
     wholesalePrice: number | string;
     basePrice: number | string;
+    wholesaleMinQuantity?: number;
     currency: string;
     category: string;
     active: boolean;
