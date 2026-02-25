@@ -29,6 +29,7 @@ export type Product = {
   id: string;
   name: string;
   price: number;
+  basePrice?: number;
   image: string;
   seller: string;
   rating: number;
@@ -36,13 +37,10 @@ export type Product = {
   description?: string;
   highlights?: string[];
   specs?: { label: string; value: string }[];
-  /** Tienda (retailer) que vende este producto en /tienda; para link "Ver más de esta tienda" */
   sellerStoreId?: string;
   sellerStoreName?: string;
   sellerStoreSlug?: string;
-  /** Slug del producto para URL /tienda/:storeSlug/producto/:productSlug */
   slug?: string;
-  /** Proveedor del producto; para link "Ver catálogo del proveedor" (B2B) */
   providerId?: string;
   providerName?: string;
   providerSlug?: string;
@@ -55,7 +53,6 @@ function toNumber(v: number | string | null | undefined): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-/** Si se pasa storeSlug, se usa el precio de esa tienda cuando exista en storeProducts. */
 function mapBackendToProduct(row: ProductBackend, storeSlug?: string): Product {
   const storeProducts = row.storeProducts ?? [];
   const storeProduct =
@@ -67,11 +64,13 @@ function mapBackendToProduct(row: ProductBackend, storeSlug?: string): Product {
   const price =
     storeProduct != null && storeProduct.price != null
       ? toNumber(storeProduct.price)
-      : toNumber(row.suggestedPrice);
+      : toNumber(row.basePrice ?? row.suggestedPrice);
+  const basePrice = row.basePrice != null ? toNumber(row.basePrice) : undefined;
   return {
     id: row.id,
     name: row.name,
     price,
+    basePrice,
     image: row.imageUrl ?? "",
     seller,
     rating: toNumber(row.rating) || 0,
