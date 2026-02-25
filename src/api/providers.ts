@@ -17,6 +17,7 @@ export type ProviderProfile = {
   country: string;
   verified: boolean;
   requireStoreApproval?: boolean;
+  whitelistedStoreIds?: string[];
   createdAt: string;
   updatedAt: string;
   products?: Array<{
