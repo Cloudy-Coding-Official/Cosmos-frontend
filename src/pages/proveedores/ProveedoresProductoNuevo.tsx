@@ -11,6 +11,7 @@ const defaultForm: CreateProductPayload = {
   sku: "",
   basePrice: 0,
   wholesalePrice: 0,
+  wholesaleMinQuantity: 1,
   suggestedPrice: 0,
   currency: "USD",
   stock: 0,
@@ -44,6 +45,7 @@ export function ProveedoresProductoNuevo() {
         sku: form.sku.trim(),
         basePrice: Number(form.basePrice) || 0,
         wholesalePrice: Number(form.wholesalePrice) || 0,
+        wholesaleMinQuantity: Math.max(1, Number(form.wholesaleMinQuantity) || 1),
         suggestedPrice: Number(form.suggestedPrice) || 0,
         category: form.category.trim() || "General",
         currency: form.currency || "USD",
@@ -173,6 +175,19 @@ export function ProveedoresProductoNuevo() {
                 }
                 className="w-full px-4 py-2.5 bg-cosmos-surface border border-cosmos-border text-cosmos-text rounded-lg focus:outline-none focus:border-cosmos-accent"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-cosmos-text mb-2">Mín. cantidad para precio mayorista</label>
+              <input
+                type="number"
+                min={1}
+                value={form.wholesaleMinQuantity ?? 1}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, wholesaleMinQuantity: Math.max(1, parseInt(e.target.value, 10) || 1) }))
+                }
+                className="w-full px-4 py-2.5 bg-cosmos-surface border border-cosmos-border text-cosmos-text rounded-lg focus:outline-none focus:border-cosmos-accent"
+              />
+              <p className="text-xs text-cosmos-muted mt-1">A partir de esta cantidad se cobra el precio mayorista al retailer.</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-cosmos-text mb-2">Precio sugerido (US$) *</label>
