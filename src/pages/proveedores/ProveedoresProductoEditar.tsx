@@ -33,6 +33,7 @@ export function ProveedoresProductoEditar() {
             sku: product.sku,
             basePrice: product.basePrice,
             wholesalePrice: product.wholesalePrice,
+            wholesaleMinQuantity: product.wholesaleMinQuantity ?? 1,
             suggestedPrice: product.suggestedPrice,
             currency: product.currency,
             stock: product.stock,
@@ -61,6 +62,7 @@ export function ProveedoresProductoEditar() {
       description: form.description?.trim() ?? undefined,
       basePrice: form.basePrice != null ? Number(form.basePrice) : undefined,
       wholesalePrice: form.wholesalePrice != null ? Number(form.wholesalePrice) : undefined,
+      wholesaleMinQuantity: form.wholesaleMinQuantity != null ? Math.max(1, Number(form.wholesaleMinQuantity)) : undefined,
       suggestedPrice: form.suggestedPrice != null ? Number(form.suggestedPrice) : undefined,
       category: form.category?.trim() || undefined,
       stock: form.stock != null ? Number(form.stock) : undefined,
@@ -199,6 +201,19 @@ export function ProveedoresProductoEditar() {
                 }
                 className="w-full px-4 py-2.5 bg-cosmos-surface border border-cosmos-border text-cosmos-text rounded-lg focus:outline-none focus:border-cosmos-accent"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-cosmos-text mb-2">Mín. cantidad para precio mayorista</label>
+              <input
+                type="number"
+                min={1}
+                value={form.wholesaleMinQuantity ?? 1}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, wholesaleMinQuantity: Math.max(1, parseInt(e.target.value, 10) || 1) }))
+                }
+                className="w-full px-4 py-2.5 bg-cosmos-surface border border-cosmos-border text-cosmos-text rounded-lg focus:outline-none focus:border-cosmos-accent"
+              />
+              <p className="text-xs text-cosmos-muted mt-1">A partir de esta cantidad se cobra el precio mayorista al retailer.</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-cosmos-text mb-2">Precio sugerido (US$) *</label>
