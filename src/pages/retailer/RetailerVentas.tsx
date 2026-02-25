@@ -1,14 +1,50 @@
 import { Link } from "react-router-dom";
 import { DollarSign, Package, ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { getRetailerSales, orderStatusLabel, type RetailerSale, type OrderStatusBackend } from "../../api/orders";
+import { getErrorMessage } from "../../api/client";
 
-const MOCK_VENTAS = [
-  { id: "V-001", fecha: "14 Feb 2025", producto: "Auriculares inalámbricos", cliente: "Cliente A", total: 49.99, estado: "Entregado" },
-  { id: "V-002", fecha: "13 Feb 2025", producto: "Cargador rápido 65W", cliente: "Cliente B", total: 44.0, estado: "En camino" },
-  { id: "V-003", fecha: "12 Feb 2025", producto: "Pack 3 camisetas básicas", cliente: "Cliente C", total: 24.99, estado: "Entregado" },
-];
+function formatSaleDate(createdAt: string): string {
+  return new Date(createdAt).toLocaleDateString("es-AR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function productSummary(order: RetailerSale): string {
+  const items = order.orderItems ?? [];
+  if (items.length === 0) return "Pedido";
+  if (items.length === 1) {
+    const name = items[0].product?.name ?? "Producto";
+    return `${name} x ${items[0].quantity}`;
+  }
+  return items.map((i) => `${i.product?.name ?? "Producto"} x ${i.quantity}`).join(", ");
+}
+
+function buyerName(order: RetailerSale): string {
+  const b = order.buyer;
+  if (!b) return "—";
+  const first = b.firstName?.trim() ?? "";
+  const last = b.lastName?.trim() ?? "";
+  const name = [first, last].filter(Boolean).join(" ");
+  return name || "Cliente";
+}
 
 export function RetailerVentas() {
-  const totalVentas = MOCK_VENTAS.reduce((acc, v) => acc + v.total, 0);
+  const [ventas, setVentas] = useState<RetailerSale[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getRetailerSales()
+      .then(setVentas)
+      .catch((err) => setError(getErrorMessage(err, "Error al cargar ventas")))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const totalVentas = ventas.reduce((acc, v) => acc + Number(v.totalAmount), 0);
+  const currency = ventas[0]?.currency ?? "USD";
 
   return (
     <div className="min-h-screen bg-cosmos-bg py-8 md:py-12">
@@ -34,11 +70,30 @@ export function RetailerVentas() {
             </div>
             <div>
               <p className="text-xs text-cosmos-muted m-0">Total vendido</p>
-              <p className="font-semibold text-cosmos-text text-xl m-0">US$ {totalVentas.toFixed(2)}</p>
+              <p className="font-semibold text-cosmos-text text-xl m-0">
+                {ventas.length > 0 ? `${currency} ${totalVentas.toFixed(2)}` : "—"}
+              </p>
             </div>
           </div>
         </div>
 
+        {error && (
+          <div className="mb-6 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-sm text-red-400">
+            {error}
+          </div>
+        )}
+
+        {loading ? (
+          <p className="text-cosmos-muted">Cargando ventas…</p>
+        ) : ventas.length === 0 ? (
+          <div className="p-12 bg-cosmos-surface border border-cosmos-border rounded-2xl text-center">
+            <Package size={48} className="text-cosmos-muted mx-auto mb-4" />
+            <p className="text-cosmos-muted m-0">Aún no tienes ventas.</p>
+            <Link to="/retailer/tiendas" className="inline-flex items-center gap-2 mt-4 text-cosmos-accent hover:text-cosmos-accent-hover">
+              Ver mis tiendas y productos <ArrowRight size={16} />
+            </Link>
+          </div>
+        ) : (
         <div className="overflow-x-auto">
           <table className="w-full bg-cosmos-surface border border-cosmos-border rounded-2xl overflow-hidden">
             <thead>
@@ -64,25 +119,31 @@ export function RetailerVentas() {
               </tr>
             </thead>
             <tbody>
-              {MOCK_VENTAS.map((venta) => (
+              {ventas.map((venta) => (
                 <tr
                   key={venta.id}
                   className="border-b border-cosmos-border last:border-b-0 hover:bg-cosmos-surface-elevated/50 transition-colors"
                 >
-                  <td className="px-6 py-4 font-medium text-cosmos-text">{venta.id}</td>
-                  <td className="px-6 py-4 text-cosmos-muted text-sm">{venta.fecha}</td>
-                  <td className="px-6 py-4 text-cosmos-text">{venta.producto}</td>
-                  <td className="px-6 py-4 text-cosmos-muted">{venta.cliente}</td>
-                  <td className="px-6 py-4 font-medium text-cosmos-text">US$ {venta.total.toFixed(2)}</td>
+                  <td className="px-6 py-4 font-medium text-cosmos-text font-mono text-sm">
+                    {venta.id.slice(0, 8)}
+                  </td>
+                  <td className="px-6 py-4 text-cosmos-muted text-sm">{formatSaleDate(venta.createdAt)}</td>
+                  <td className="px-6 py-4 text-cosmos-text">{productSummary(venta)}</td>
+                  <td className="px-6 py-4 text-cosmos-muted">{buyerName(venta)}</td>
+                  <td className="px-6 py-4 font-medium text-cosmos-text">
+                    {venta.currency} {Number(venta.totalAmount).toFixed(2)}
+                  </td>
                   <td className="px-6 py-4">
                     <span
                       className={`inline-block px-3 py-1 text-xs font-medium rounded-lg ${
-                        venta.estado === "Entregado"
+                        venta.status === "DELIVERED" || venta.status === "RELEASED"
                           ? "bg-emerald-500/10 text-emerald-400"
-                          : "bg-amber-500/10 text-amber-400"
+                          : venta.status === "CANCELLED" || venta.status === "DISPUTED"
+                            ? "bg-red-500/10 text-red-400"
+                            : "bg-amber-500/10 text-amber-400"
                       }`}
                     >
-                      {venta.estado}
+                      {orderStatusLabel(venta.status as OrderStatusBackend)}
                     </span>
                   </td>
                 </tr>
@@ -90,15 +151,6 @@ export function RetailerVentas() {
             </tbody>
           </table>
         </div>
-
-        {MOCK_VENTAS.length === 0 && (
-          <div className="p-12 bg-cosmos-surface border border-cosmos-border rounded-2xl text-center">
-            <Package size={48} className="text-cosmos-muted mx-auto mb-4" />
-            <p className="text-cosmos-muted m-0">Aún no tienes ventas.</p>
-            <Link to="/retailer/tiendas" className="inline-flex items-center gap-2 mt-4 text-cosmos-accent hover:text-cosmos-accent-hover">
-              Ver mis tiendas y productos <ArrowRight size={16} />
-            </Link>
-          </div>
         )}
       </div>
     </div>
