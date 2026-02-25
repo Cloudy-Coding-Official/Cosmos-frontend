@@ -1,4 +1,4 @@
-import { Store, Users, BarChart3, Upload, ArrowRight, Package, TrendingUp, User } from "lucide-react";
+import { Store, Users, BarChart3, ArrowRight, Package, TrendingUp, User } from "lucide-react";
 
 type Section = "retailer" | "proveedor";
 
@@ -12,10 +12,9 @@ const RETAILER_PREVIEW = {
   subtitle: "Vendé sin stock: conectás con proveedores y vendés a clientes finales.",
   flow: ["Proveedores", "Tú (Retailer)", "Clientes finales"],
   cards: [
-    { icon: Upload, title: "Subir productos", desc: "Productos propios o del catálogo de proveedores." },
+    { icon: Store, title: "Mis tiendas", desc: "Varios perfiles de tienda. En cada una gestionás sus productos." },
     { icon: Users, title: "Proveedores", desc: "Explorá, seleccioná y compará costos." },
     { icon: TrendingUp, title: "Ventas", desc: "Historial de ventas a tus clientes." },
-    { icon: Store, title: "Mis tiendas", desc: "Varios perfiles de tienda." },
     { icon: BarChart3, title: "Análisis de mercado", desc: "Próximamente." },
   ],
 };
