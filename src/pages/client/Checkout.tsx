@@ -1,9 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Shield, CreditCard, Truck, ChevronRight } from "lucide-react";
-import { CART_ITEMS, getCartSubtotal, getCartFee, getCartTotal } from "../../data/cart";
+import { useCart } from "../../context/CartContext";
 import { addOrder } from "../../data/orders";
-import { getProductById } from "../../data/products";
 import { ProductImage } from "../../components/ProductImage";
 
 const PASOS = [
@@ -14,6 +13,7 @@ const PASOS = [
 
 export function Checkout() {
   const navigate = useNavigate();
+  const { items, subtotal, fee, total, clearCart } = useCart();
   const [paso, setPaso] = useState(1);
   const [datos, setDatos] = useState({
     nombre: "",
@@ -26,9 +26,19 @@ export function Checkout() {
   });
   const [enviando, setEnviando] = useState(false);
 
-  const subtotal = getCartSubtotal(CART_ITEMS);
-  const fee = getCartFee(CART_ITEMS);
-  const total = getCartTotal(CART_ITEMS);
+  useEffect(() => {
+    if (items.length === 0) {
+      navigate("/carrito", { replace: true });
+    }
+  }, [items.length, navigate]);
+
+  if (items.length === 0) {
+    return (
+      <div className="min-h-screen bg-cosmos-bg py-8 md:py-12 flex items-center justify-center">
+        <p className="text-cosmos-muted">Redirigiendo al carrito…</p>
+      </div>
+    );
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setDatos((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -56,11 +66,12 @@ export function Checkout() {
     const order = addOrder({
       fecha: new Date().toISOString(),
       monto: total,
-      items: CART_ITEMS.map((i) => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity })),
+      items: items.map((i) => ({ id: i.productId, name: i.name, price: i.price, quantity: i.quantity })),
       estado: "comprado",
-      tienda: "Tienda Cosmos",
+      tienda: items[0]?.storeSlug ?? "Tienda",
       direccionEnvio: direccion,
     });
+    clearCart();
     setEnviando(false);
     navigate("/perfil/compras/" + order.id);
   };
@@ -242,11 +253,11 @@ export function Checkout() {
             <div className="sticky top-24 p-6 bg-cosmos-surface border border-cosmos-border rounded-xl">
               <h2 className="font-semibold text-cosmos-text m-0 mb-4">Tu pedido</h2>
               <div className="space-y-3 mb-4 max-h-[200px] overflow-y-auto">
-                {CART_ITEMS.map((item) => (
-                  <div key={item.id} className="flex items-center gap-3 text-sm">
+                {items.map((item) => (
+                  <div key={`${item.productId}-${item.storeId}`} className="flex items-center gap-3 text-sm">
                     <div className="w-12 h-12 shrink-0 rounded-lg overflow-hidden bg-cosmos-surface-elevated">
                       <ProductImage
-                        src={getProductById(item.id)?.image ?? item.image}
+                        src={item.image}
                         alt={item.name}
                         className="w-full h-full object-cover"
                         wrapperClassName="w-full h-full"
@@ -256,7 +267,7 @@ export function Checkout() {
                       <span className="text-cosmos-text block truncate">
                         {item.name} × {item.quantity}
                       </span>
-                      <span className="text-cosmos-muted">US$ {(item.price * item.quantity).toFixed(2)}</span>
+                      <span className="text-cosmos-muted">{(item.currency ?? "USD")} {(item.price * item.quantity).toFixed(2)}</span>
                     </div>
                   </div>
                 ))}
@@ -264,16 +275,16 @@ export function Checkout() {
               <div className="space-y-2 py-4 border-t border-cosmos-border">
                 <div className="flex justify-between text-sm">
                   <span className="text-cosmos-muted">Subtotal</span>
-                  <span className="text-cosmos-text">US$ {subtotal.toFixed(2)}</span>
+                  <span className="text-cosmos-text">{(items[0]?.currency ?? "USD")} {subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-cosmos-muted">Servicio</span>
-                  <span className="text-cosmos-text">US$ {fee.toFixed(2)}</span>
+                  <span className="text-cosmos-text">{(items[0]?.currency ?? "USD")} {fee.toFixed(2)}</span>
                 </div>
               </div>
               <div className="flex justify-between font-semibold text-lg py-2 text-cosmos-text">
                 <span>Total</span>
-                <span>US$ {total.toFixed(2)}</span>
+                <span>{(items[0]?.currency ?? "USD")} {total.toFixed(2)}</span>
               </div>
 
               <div className="flex gap-3 mt-6">
