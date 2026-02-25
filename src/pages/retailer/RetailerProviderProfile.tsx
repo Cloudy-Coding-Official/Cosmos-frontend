@@ -8,8 +8,10 @@ import {
   addProductToStore,
   removeProductFromStore,
   createMyStore,
+  getMyPendingRequests,
   type Store,
   type StoreProductItem,
+  type StoreProductRequestItem,
 } from "../../api/storeProducts";
 import { ProductImage } from "../../components/ProductImage";
 import { getErrorMessage } from "../../api/client";
@@ -30,6 +32,7 @@ export function RetailerProviderProfile() {
   const [error, setError] = useState<string | null>(null);
   const [myStores, setMyStores] = useState<Store[]>([]);
   const [myStoreProducts, setMyStoreProducts] = useState<StoreProductItem[]>([]);
+  const [myPendingRequests, setMyPendingRequests] = useState<StoreProductRequestItem[]>([]);
   const [addingToStoreId, setAddingToStoreId] = useState<string | null>(null);
   const [removingFromStoreId, setRemovingFromStoreId] = useState<string | null>(null);
   const [creatingStore, setCreatingStore] = useState(false);
@@ -64,10 +67,11 @@ export function RetailerProviderProfile() {
   }, [providerSlugOrId]);
 
   const loadStoresAndProducts = () => {
-    Promise.all([getMyStores(), getMyStoreProducts()])
-      .then(([stores, list]) => {
+    Promise.all([getMyStores(), getMyStoreProducts(), getMyPendingRequests()])
+      .then(([stores, list, pending]) => {
         setMyStores(stores ?? []);
         setMyStoreProducts(Array.isArray(list) ? list : []);
+        setMyPendingRequests(Array.isArray(pending) ? pending : []);
       })
       .catch(() => setMyStores([]));
   };
@@ -93,6 +97,11 @@ export function RetailerProviderProfile() {
 
   const getStoreProduct = (productId: string, storeId: string): StoreProductItem | undefined =>
     myStoreProducts.find((sp) => sp.productId === productId && sp.storeId === storeId);
+
+  const getPendingRequest = (productId: string, storeId: string): StoreProductRequestItem | undefined =>
+    myPendingRequests.find((r) => r.productId === productId && r.storeId === storeId);
+
+  const requireApproval = provider?.requireStoreApproval !== false;
 
   const openManageModal = (productId: string, productName: string, suggestedPrice: number) => {
     setManageModal({ productId, productName, suggestedPrice });
@@ -125,7 +134,7 @@ export function RetailerProviderProfile() {
       await addProductToStore(storeId, manageModal.productId, price);
       loadStoresAndProducts();
     } catch (err) {
-      setManageError(getErrorMessage(err, "No se pudo agregar el producto"));
+      setManageError(getErrorMessage(err, requireApproval ? "No se pudo enviar la solicitud" : "No se pudo agregar el producto"));
     } finally {
       setAddingToStoreId(null);
     }
@@ -348,6 +357,7 @@ export function RetailerProviderProfile() {
             <div className="space-y-3 overflow-y-auto flex-1 min-h-0">
               {myStores.map((store) => {
                 const inStore = storeIdsWithProduct(manageModal.productId).includes(store.id);
+                const pendingForStore = getPendingRequest(manageModal.productId, store.id);
                 const storeProduct = getStoreProduct(manageModal.productId, store.id);
                 const isAdding = addingToStoreId === store.id;
                 const isRemoving = removingFromStoreId === store.id;
@@ -356,7 +366,7 @@ export function RetailerProviderProfile() {
                   <div
                     key={store.id}
                     className={`flex flex-wrap items-center gap-3 p-3 rounded-xl border ${
-                      inStore ? "border-emerald-500/30 bg-emerald-500/5" : "border-cosmos-border bg-cosmos-surface-elevated"
+                      inStore ? "border-emerald-500/30 bg-emerald-500/5" : pendingForStore ? "border-amber-500/30 bg-amber-500/5" : "border-cosmos-border bg-cosmos-surface-elevated"
                     }`}
                   >
                     <div className="w-10 h-10 rounded-lg bg-cosmos-accent/10 flex items-center justify-center shrink-0">
@@ -367,6 +377,11 @@ export function RetailerProviderProfile() {
                       {inStore && storeProduct && (
                         <p className="text-xs text-cosmos-muted m-0">
                           En esta tienda · US$ {toNum(storeProduct.price).toFixed(2)}
+                        </p>
+                      )}
+                      {pendingForStore && (
+                        <p className="text-xs text-amber-600 dark:text-amber-400 m-0">
+                          Pendiente de aprobación · US$ {toNum(pendingForStore.requestedPrice).toFixed(2)}
                         </p>
                       )}
                     </div>
@@ -393,6 +408,10 @@ export function RetailerProviderProfile() {
                           <Trash2 size={16} />
                         </button>
                       </div>
+                    ) : pendingForStore ? (
+                      <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400">
+                        Pendiente de aprobación
+                      </span>
                     ) : (
                       <div className="flex items-center gap-2 flex-wrap">
                         <input
@@ -414,7 +433,7 @@ export function RetailerProviderProfile() {
                           disabled={busy || !Number.isFinite(parseFloat(priceByStoreId[store.id] ?? "")) || parseFloat(priceByStoreId[store.id] ?? "0") < 0}
                           className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-cosmos-accent border border-cosmos-accent/50 rounded-lg hover:bg-cosmos-accent/10 disabled:opacity-50"
                         >
-                          {isAdding ? "Agregando…" : "Agregar"}
+                          {isAdding ? (requireApproval ? "Enviando…" : "Agregando…") : requireApproval ? "Solicitar acceso" : "Agregar"}
                         </button>
                       </div>
                     )}

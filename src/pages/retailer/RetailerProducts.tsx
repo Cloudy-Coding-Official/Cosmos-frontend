@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
-import { Upload, Package, ArrowRight, Plus, Pencil, Check, X } from "lucide-react";
+import { Upload, Package, ArrowRight, Plus, Pencil, Check, X, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import {
   getMyStoreProducts,
   updateStoreProductPrice,
+  removeProductFromStore,
   type StoreProductItem,
 } from "../../api/storeProducts";
 import { getErrorMessage } from "../../api/client";
@@ -24,6 +25,7 @@ export function RetailerProducts() {
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editPrice, setEditPrice] = useState("");
   const [savingKey, setSavingKey] = useState<string | null>(null);
+  const [removingKey, setRemovingKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadProducts = () => {
@@ -71,6 +73,21 @@ export function RetailerProducts() {
       setError(getErrorMessage(err, "No se pudo actualizar el precio"));
     } finally {
       setSavingKey(null);
+    }
+  };
+
+  const handleRemove = async (item: StoreProductItem) => {
+    if (!window.confirm("¿Quitar este producto de la tienda?")) return;
+    setError(null);
+    const key = `${item.storeId}-${item.productId}`;
+    setRemovingKey(key);
+    try {
+      await removeProductFromStore(item.storeId, item.productId);
+      setStoreProducts((prev) => prev.filter((p) => p.storeId !== item.storeId || p.productId !== item.productId));
+    } catch (err) {
+      setError(getErrorMessage(err, "No se pudo quitar el producto"));
+    } finally {
+      setRemovingKey(null);
     }
   };
 
@@ -163,6 +180,8 @@ export function RetailerProducts() {
                     const key = `${item.storeId}-${item.productId}`;
                     const isEditing = editingKey === key;
                     const isSaving = savingKey === key;
+                    const isRemoving = removingKey === key;
+                    const busy = isSaving || isRemoving;
                     return (
                       <tr
                         key={key}
@@ -217,14 +236,27 @@ export function RetailerProducts() {
                         </td>
                         <td className="py-4 pr-4">
                           {!isEditing && (
-                            <button
-                              type="button"
-                              onClick={() => startEdit(item)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-cosmos-accent border border-cosmos-accent/50 rounded-lg hover:bg-cosmos-accent/10"
-                            >
-                              <Pencil size={14} />
-                              Modificar precio
-                            </button>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => startEdit(item)}
+                                disabled={busy}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-cosmos-accent border border-cosmos-accent/50 rounded-lg hover:bg-cosmos-accent/10 disabled:opacity-50"
+                              >
+                                <Pencil size={14} />
+                                Modificar precio
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleRemove(item)}
+                                disabled={busy}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-500 border border-red-500/30 rounded-lg hover:bg-red-500/10 disabled:opacity-50"
+                                title="Quitar de la tienda"
+                              >
+                                <Trash2 size={14} />
+                                {isRemoving ? "Quitando…" : "Quitar"}
+                              </button>
+                            </div>
                           )}
                         </td>
                       </tr>

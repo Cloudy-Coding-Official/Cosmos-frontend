@@ -1,11 +1,14 @@
 import { Link, useParams, Navigate } from "react-router-dom";
-import { Package, Pencil, Check, X, Store, Plus, ArrowRight } from "lucide-react";
+import { Package, Pencil, Check, X, Store, Plus, ArrowRight, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import {
   getMyStores,
   getStoreProductsByStoreSlug,
+  getMyPendingRequests,
   updateStoreProductPrice,
+  removeProductFromStore,
   type StoreProductItem,
+  type StoreProductRequestItem,
   type Store as StoreType,
 } from "../../api/storeProducts";
 import { getErrorMessage } from "../../api/client";
@@ -24,10 +27,12 @@ export function RetailerStoreProducts() {
   const { storeSlug } = useParams<{ storeSlug: string }>();
   const [store, setStore] = useState<StoreType | null>(null);
   const [storeProducts, setStoreProducts] = useState<StoreProductItem[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<StoreProductRequestItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editPrice, setEditPrice] = useState("");
   const [savingKey, setSavingKey] = useState<string | null>(null);
+  const [removingKey, setRemovingKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -35,12 +40,18 @@ export function RetailerStoreProducts() {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    Promise.all([getMyStores(), getStoreProductsByStoreSlug(storeSlug)])
-      .then(([stores, products]) => {
+    Promise.all([getMyStores(), getStoreProductsByStoreSlug(storeSlug), getMyPendingRequests()])
+      .then(([stores, products, pending]) => {
         if (cancelled) return;
         const found = (stores ?? []).find((s) => s.slug === storeSlug || s.id === storeSlug);
         setStore(found ?? null);
         setStoreProducts(Array.isArray(products) ? products : []);
+        const storeId = found?.id;
+        setPendingRequests(
+          storeId && Array.isArray(pending)
+            ? pending.filter((r) => r.storeId === storeId)
+            : []
+        );
       })
       .catch((err) => {
         if (!cancelled) {
@@ -90,6 +101,21 @@ export function RetailerStoreProducts() {
       setError(getErrorMessage(err, "No se pudo actualizar el precio"));
     } finally {
       setSavingKey(null);
+    }
+  };
+
+  const handleRemove = async (item: StoreProductItem) => {
+    if (!window.confirm("¿Quitar este producto de la tienda?")) return;
+    setError(null);
+    const key = `${item.storeId}-${item.productId}`;
+    setRemovingKey(key);
+    try {
+      await removeProductFromStore(item.storeId, item.productId);
+      setStoreProducts((prev) => prev.filter((p) => p.storeId !== item.storeId || p.productId !== item.productId));
+    } catch (err) {
+      setError(getErrorMessage(err, "No se pudo quitar el producto"));
+    } finally {
+      setRemovingKey(null);
     }
   };
 
@@ -186,7 +212,7 @@ export function RetailerStoreProducts() {
           </div>
         )}
 
-        {storeProducts.length === 0 ? (
+        {storeProducts.length === 0 && pendingRequests.length === 0 ? (
           <div className="p-8 bg-cosmos-surface border border-cosmos-border rounded-2xl text-center">
             <Package size={40} className="text-cosmos-muted mx-auto mb-4" />
             <p className="text-cosmos-muted m-0 mb-4">
@@ -215,10 +241,35 @@ export function RetailerStoreProducts() {
                 </tr>
               </thead>
               <tbody>
+                {pendingRequests.map((r) => (
+                  <tr
+                    key={`pending-${r.id}`}
+                    className="border-b border-cosmos-border/60 bg-amber-500/5 border-l-2 border-l-amber-500/50"
+                  >
+                    <td className="py-4 pr-4 font-medium text-cosmos-text">
+                      {r.product?.name ?? "—"}
+                    </td>
+                    <td className="py-4 pr-4 text-sm text-cosmos-muted">
+                      {r.product?.provider?.legalName ?? "—"}
+                    </td>
+                    <td className="py-4 pr-4">
+                      <span className="text-amber-600 dark:text-amber-400 font-medium">
+                        US$ {toNum(r.requestedPrice).toFixed(2)} (solicitado)
+                      </span>
+                    </td>
+                    <td className="py-4 pr-4">
+                      <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400">
+                        Pendiente de aprobación
+                      </span>
+                    </td>
+                  </tr>
+                ))}
                 {storeProducts.map((item) => {
                   const key = `${item.storeId}-${item.productId}`;
                   const isEditing = editingKey === key;
                   const isSaving = savingKey === key;
+                  const isRemoving = removingKey === key;
+                  const busy = isSaving || isRemoving;
                   return (
                     <tr
                       key={key}
@@ -273,14 +324,27 @@ export function RetailerStoreProducts() {
                       </td>
                       <td className="py-4 pr-4">
                         {!isEditing && (
-                          <button
-                            type="button"
-                            onClick={() => startEdit(item)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-cosmos-accent border border-cosmos-accent/50 rounded-lg hover:bg-cosmos-accent/10"
-                          >
-                            <Pencil size={14} />
-                            Modificar precio
-                          </button>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => startEdit(item)}
+                              disabled={busy}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-cosmos-accent border border-cosmos-accent/50 rounded-lg hover:bg-cosmos-accent/10 disabled:opacity-50"
+                            >
+                              <Pencil size={14} />
+                              Modificar precio
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRemove(item)}
+                              disabled={busy}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-500 border border-red-500/30 rounded-lg hover:bg-red-500/10 disabled:opacity-50"
+                              title="Quitar de la tienda"
+                            >
+                              <Trash2 size={14} />
+                              {isRemoving ? "Quitando…" : "Quitar"}
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>
