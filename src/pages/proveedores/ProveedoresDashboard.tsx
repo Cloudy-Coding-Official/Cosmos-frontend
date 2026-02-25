@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Package, Users, TrendingUp, User, ArrowRight } from "lucide-react";
+import { Package, Users, TrendingUp, User, ArrowRight, ClipboardCheck, ShieldCheck } from "lucide-react";
 
 const SECTIONS = [
   {
@@ -7,6 +7,18 @@ const SECTIONS = [
     icon: Package,
     title: "Catálogo",
     desc: "Subí tus productos para que los retailers los listen en sus tiendas",
+  },
+  {
+    to: "/proveedores/solicitudes",
+    icon: ClipboardCheck,
+    title: "Solicitudes de tiendas",
+    desc: "Aprobá o rechazá tiendas que quieren vender tus productos",
+  },
+  {
+    to: "/proveedores/tiendas-autorizadas",
+    icon: ShieldCheck,
+    title: "Tiendas autorizadas",
+    desc: "Tiendas que pueden añadir cualquier producto sin solicitar",
   },
   {
     to: "/proveedores/retailers",

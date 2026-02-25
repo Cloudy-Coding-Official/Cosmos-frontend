@@ -30,6 +30,7 @@ export function ProveedoresPerfil() {
             legalName: data.legalName,
             taxId: data.taxId,
             country: data.country,
+            requireStoreApproval: data.requireStoreApproval ?? true,
           });
         }
       })
@@ -55,6 +56,7 @@ export function ProveedoresPerfil() {
         legalName: form.legalName?.trim(),
         taxId: form.taxId?.trim(),
         country: form.country?.trim(),
+        requireStoreApproval: form.requireStoreApproval,
       });
       setProfile(updated);
       setSuccess(true);
@@ -157,6 +159,18 @@ export function ProveedoresPerfil() {
                 className="w-full px-4 py-2.5 bg-cosmos-bg border border-cosmos-border text-cosmos-text rounded-lg focus:outline-none focus:border-cosmos-accent"
                 placeholder="Ej. AR, MX, UY"
               />
+            </div>
+            <div className="flex items-center gap-3 pt-2">
+              <input
+                type="checkbox"
+                id="requireStoreApproval"
+                checked={form.requireStoreApproval !== false}
+                onChange={(e) => setForm((f) => ({ ...f, requireStoreApproval: e.target.checked }))}
+                className="w-4 h-4 rounded border-cosmos-border text-cosmos-accent focus:ring-cosmos-accent"
+              />
+              <label htmlFor="requireStoreApproval" className="text-sm text-cosmos-text cursor-pointer">
+                Requerir que las tiendas soliciten acceso para vender mis productos (recomendado). Si está desactivado, cualquier retailer puede agregar tus productos directamente.
+              </label>
             </div>
           </div>
 
