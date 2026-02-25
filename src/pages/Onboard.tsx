@@ -16,8 +16,7 @@ const WALLET_ONBOARDING_KEY = "cosmos_wallet_onboarding_address";
 const STEPS = [
   { id: 1, title: "Tipo de cuenta" },
   { id: 2, title: "Datos personales" },
-  { id: 3, title: "Tu negocio" },
-  { id: 4, title: "Listo" },
+  { id: 3, title: "Listo" },
 ];
 
 export function Onboard() {
@@ -33,9 +32,7 @@ export function Onboard() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [businessName, setBusinessName] = useState("");
   const [country, setCountry] = useState("");
-  const [taxId, setTaxId] = useState("");
   const [finishError, setFinishError] = useState("");
   const [finishLoading, setFinishLoading] = useState(false);
   const pendingGoogleRef = useRef<Omit<RegisterWithGooglePayload, "idToken"> | null>(null);
@@ -69,8 +66,7 @@ export function Onboard() {
 
   const { triggerSignIn: triggerGoogleSignIn, isReady: googleReady, buttonContainerRef } = useGoogleSignIn(handleGoogleCredentialForRegister);
 
-  const needsBusinessStep = role === "retailer" || role === "proveedor";
-  const totalSteps = needsBusinessStep ? 4 : 3;
+  const totalSteps = 3;
 
   const handleNext = () => {
     if (step < totalSteps) setStep((s) => s + 1);
@@ -109,8 +105,6 @@ export function Onboard() {
           firstName: firstName.trim() || undefined,
           lastName: lastName.trim() || undefined,
           role: role ?? "comprador",
-          businessName: needsBusinessStep ? businessName.trim() || undefined : undefined,
-          taxId: role === "proveedor" ? (taxId.trim() || undefined) : undefined,
         });
         sessionStorage.removeItem(WALLET_ONBOARDING_KEY);
         setUser(res.user);
@@ -142,8 +136,6 @@ export function Onboard() {
         firstName: firstName.trim() || undefined,
         lastName: lastName.trim() || undefined,
         role: role ?? "comprador",
-        businessName: needsBusinessStep ? businessName.trim() || undefined : undefined,
-        taxId: role === "proveedor" ? (taxId.trim() || undefined) : undefined,
       };
       triggerGoogleSignIn();
       return;
@@ -160,9 +152,23 @@ export function Onboard() {
         lastName: lastName.trim() || undefined,
         country: countryCode,
       });
-      setUser(res.user);
+      let user = res.user;
+      if (role === "retailer") {
+        const updated = await authApi.expandAccount({
+          role: "retailer",
+          country: countryCode,
+        });
+        user = updated;
+      } else if (role === "proveedor") {
+        const updated = await authApi.expandAccount({
+          role: "proveedor",
+          country: countryCode,
+        });
+        user = updated;
+      }
+      setUser(user);
       login(
-        res.user.hasProviderProfile ? "proveedor" : res.user.hasStoreProfile ? "retailer" : "comprador"
+        user.hasProviderProfile ? "proveedor" : user.hasStoreProfile ? "retailer" : "comprador"
       );
       if (role === "retailer") navigate("/retailer");
       else if (role === "proveedor") navigate("/proveedores");
@@ -177,7 +183,6 @@ export function Onboard() {
   const canProceed = () => {
     if (step === 1) return role !== null;
     if (step === 2) return firstName.trim() && lastName.trim() && email.trim() && password.length >= 8;
-    if (step === 3 && needsBusinessStep) return businessName.trim();
     return true;
   };
 
@@ -331,49 +336,7 @@ export function Onboard() {
             </div>
           )}
 
-          {/* Step 3: Negocio (solo retailer o proveedor) */}
-          {step === 3 && needsBusinessStep && (
-            <div>
-              <h2 className="font-display font-semibold text-cosmos-text text-lg m-0 mb-4">
-                {role === "retailer" ? "Tu tienda" : "Tu empresa"}
-              </h2>
-              <div className="flex flex-col gap-4">
-                <label className="flex flex-col gap-1.5">
-                  <span className="text-xs font-medium uppercase tracking-wider text-cosmos-muted">
-                    {role === "retailer" ? "Nombre de la tienda" : "Nombre de la empresa"}
-                  </span>
-                  <input type="text" className={inputBase} value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder={role === "retailer" ? "Ej: Mi Tienda" : "Ej: Distribuidora XYZ"} required />
-                </label>
-                {role === "proveedor" && (
-                  <label className="flex flex-col gap-1.5">
-                    <span className="text-xs font-medium uppercase tracking-wider text-cosmos-muted">CUIT / RFC / Tax ID</span>
-                    <input type="text" className={inputBase} value={taxId} onChange={(e) => setTaxId(e.target.value)} placeholder="Ej: 20-12345678-9" />
-                  </label>
-                )}
-                <label className="flex flex-col gap-1.5">
-                  <span className="text-xs font-medium uppercase tracking-wider text-cosmos-muted">País</span>
-                  <select className={inputBase} value={country} onChange={(e) => setCountry(e.target.value)}>
-                    <option value="">Seleccionar país</option>
-                    <option value="AR">Argentina</option>
-                    <option value="MX">México</option>
-                    <option value="CO">Colombia</option>
-                    <option value="CL">Chile</option>
-                    <option value="PE">Perú</option>
-                    <option value="EC">Ecuador</option>
-                    <option value="UY">Uruguay</option>
-                    <option value="PY">Paraguay</option>
-                    <option value="BO">Bolivia</option>
-                    <option value="US">Estados Unidos</option>
-                    <option value="ES">España</option>
-                    <option value="BR">Brasil</option>
-                    <option value="XX">Otro</option>
-                  </select>
-                </label>
-              </div>
-            </div>
-          )}
-
-          {/* Step 4 (o 3 si comprador): Resumen / Listo */}
+          {/* Step 3: Resumen / Listo */}
           {(step === totalSteps) && (
             <div className="text-center">
               {fromWallet ? (
