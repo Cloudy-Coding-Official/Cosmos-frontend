@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
 import { TrustlessWorkProviders } from "./components/providers/TrustlessWorkProviders";
 import { Layout } from "./components/Layout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -44,6 +45,7 @@ export default function App() {
     <AuthProvider>
     <TrustlessWorkProviders>
     <BrowserRouter>
+    <CartProvider>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Landing />} />
@@ -102,6 +104,7 @@ export default function App() {
           <Route path="faq" element={<PagePlaceholder />} />
         </Route>
       </Routes>
+    </CartProvider>
     </BrowserRouter>
     </TrustlessWorkProviders>
     </AuthProvider>
