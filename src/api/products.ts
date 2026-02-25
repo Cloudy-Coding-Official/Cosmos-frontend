@@ -16,7 +16,12 @@ type ProductBackend = {
   sku?: string;
   stock?: number;
   category?: string;
-  provider?: { id: string; legalName?: string } | null;
+  provider?: { id: string; legalName?: string; slug?: string } | null;
+  slug?: string;
+  storeProducts?: Array<{
+    price?: number | string;
+    store: { id: string; name: string; slug: string };
+  }>;
 };
 
 export type Product = {
@@ -30,6 +35,16 @@ export type Product = {
   description?: string;
   highlights?: string[];
   specs?: { label: string; value: string }[];
+  /** Tienda (retailer) que vende este producto en /tienda; para link "Ver más de esta tienda" */
+  sellerStoreId?: string;
+  sellerStoreName?: string;
+  sellerStoreSlug?: string;
+  /** Slug del producto para URL /tienda/:storeSlug/producto/:productSlug */
+  slug?: string;
+  /** Proveedor del producto; para link "Ver catálogo del proveedor" (B2B) */
+  providerId?: string;
+  providerName?: string;
+  providerSlug?: string;
 };
 
 function toNumber(v: number | string | null | undefined): number {
@@ -39,15 +54,23 @@ function toNumber(v: number | string | null | undefined): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-function mapBackendToProduct(row: ProductBackend): Product {
-  const seller =
-    row.provider && "legalName" in row.provider && row.provider.legalName
-      ? row.provider.legalName
-      : "Proveedor";
+/** Si se pasa storeSlug, se usa el precio de esa tienda cuando exista en storeProducts. */
+function mapBackendToProduct(row: ProductBackend, storeSlug?: string): Product {
+  const storeProducts = row.storeProducts ?? [];
+  const storeProduct =
+    storeSlug != null
+      ? storeProducts.find((sp) => sp.store?.slug === storeSlug) ?? storeProducts[0]
+      : storeProducts[0];
+  const firstStore = storeProduct?.store;
+  const seller = firstStore?.name ?? (row.provider && "legalName" in row.provider && row.provider.legalName ? row.provider.legalName : "Proveedor");
+  const price =
+    storeProduct != null && storeProduct.price != null
+      ? toNumber(storeProduct.price)
+      : toNumber(row.suggestedPrice);
   return {
     id: row.id,
     name: row.name,
-    price: toNumber(row.suggestedPrice),
+    price,
     image: row.imageUrl ?? "",
     seller,
     rating: toNumber(row.rating) || 0,
@@ -55,6 +78,13 @@ function mapBackendToProduct(row: ProductBackend): Product {
     description: row.description ?? undefined,
     highlights: Array.isArray(row.highlights) ? row.highlights : undefined,
     specs: Array.isArray(row.specs) ? row.specs : undefined,
+    sellerStoreId: firstStore?.id,
+    sellerStoreName: firstStore?.name,
+    sellerStoreSlug: firstStore?.slug,
+    slug: row.slug,
+    providerId: row.provider?.id,
+    providerName: row.provider?.legalName ?? undefined,
+    providerSlug: row.provider?.slug,
   };
 }
 
@@ -65,6 +95,8 @@ export type ProductFilters = {
   maxPrice?: number;
   sort?: "price_asc" | "price_desc" | "rating" | "newest";
   providerId?: string;
+  storeId?: string;
+  storeSlug?: string;
 };
 
 function buildProductsQuery(filters?: ProductFilters): string {
@@ -76,6 +108,8 @@ function buildProductsQuery(filters?: ProductFilters): string {
   if (filters.maxPrice != null && filters.maxPrice >= 0) params.set("maxPrice", String(filters.maxPrice));
   if (filters.sort) params.set("sort", filters.sort);
   if (filters.providerId) params.set("providerId", filters.providerId);
+  if (filters.storeId) params.set("storeId", filters.storeId);
+  if (filters.storeSlug) params.set("storeSlug", filters.storeSlug);
   const qs = params.toString();
   return qs ? `?${qs}` : "";
 }
@@ -84,7 +118,8 @@ export async function getProducts(filters?: ProductFilters): Promise<Product[]> 
   const path = `/products${buildProductsQuery(filters)}`;
   const data = await apiRequest<ProductBackend[]>(path, { method: "GET", skipAuth: true });
   const list = Array.isArray(data) ? data : [];
-  return list.map(mapBackendToProduct);
+  const storeSlug = filters?.storeSlug;
+  return list.map((row) => mapBackendToProduct(row, storeSlug));
 }
 
 export async function getProductCategories(forPublicShop?: boolean): Promise<string[]> {
@@ -104,6 +139,21 @@ export async function getProductById(id: string): Promise<Product | null> {
       skipAuth: true,
     });
     return data ? mapBackendToProduct(data) : null;
+  } catch (err) {
+    const e = err as { status?: number };
+    if (e.status === 404) return null;
+    throw err;
+  }
+}
+
+export async function getProductBySlug(slug: string, storeSlug?: string): Promise<Product | null> {
+  try {
+    const qs = storeSlug ? `?storeSlug=${encodeURIComponent(storeSlug)}` : "";
+    const data = await apiRequest<ProductBackend>(
+      `/products/by-slug/${encodeURIComponent(slug)}${qs}`,
+      { method: "GET", skipAuth: true }
+    );
+    return data ? mapBackendToProduct(data, storeSlug) : null;
   } catch (err) {
     const e = err as { status?: number };
     if (e.status === 404) return null;
