@@ -127,3 +127,12 @@ export type ProviderStoreOrder = {
     product?: { id: string; name: string };
   }>;
 };
+
+export type ProviderSale = ProviderStoreOrder;
+
+export async function getProviderSales(): Promise<ProviderSale[]> {
+  const data = await apiRequest<ProviderSale[]>("/providers/me/sales", {
+    method: "GET",
+  });
+  return Array.isArray(data) ? data : [];
+}
