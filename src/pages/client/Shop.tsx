@@ -280,7 +280,7 @@ export function Shop() {
                   ? `/tienda/${product.sellerStoreSlug}`
                   : null;
               return (
-                <div key={product.id} className="group block bg-cosmos-surface border border-cosmos-border text-cosmos-text rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:border-cosmos-accent/40 hover:shadow-xl hover:shadow-cosmos-accent/5">
+                <div key={`${product.id}-${product.sellerStoreId ?? product.sellerStoreSlug ?? ""}`} className="group block bg-cosmos-surface border border-cosmos-border text-cosmos-text rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:border-cosmos-accent/40 hover:shadow-xl hover:shadow-cosmos-accent/5">
                   <Link to={productUrl} className="block">
                     <div className="aspect-square bg-gradient-to-br from-cosmos-surface-elevated to-cosmos-surface relative overflow-hidden">
                       <ProductImage

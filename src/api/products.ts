@@ -118,8 +118,24 @@ export async function getProducts(filters?: ProductFilters): Promise<Product[]> 
   const path = `/products${buildProductsQuery(filters)}`;
   const data = await apiRequest<ProductBackend[]>(path, { method: "GET", skipAuth: true });
   const list = Array.isArray(data) ? data : [];
-  const storeSlug = filters?.storeSlug;
-  return list.map((row) => mapBackendToProduct(row, storeSlug));
+  const storeSlugFilter = filters?.storeSlug;
+
+  if (storeSlugFilter != null) {
+    return list.map((row) => mapBackendToProduct(row, storeSlugFilter));
+  }
+
+  const result: Product[] = [];
+  for (const row of list) {
+    const storeProducts = row.storeProducts ?? [];
+    if (storeProducts.length === 0) {
+      result.push(mapBackendToProduct(row));
+    } else {
+      for (const sp of storeProducts) {
+        result.push(mapBackendToProduct(row, sp.store?.slug));
+      }
+    }
+  }
+  return result;
 }
 
 export async function getProductCategories(forPublicShop?: boolean): Promise<string[]> {

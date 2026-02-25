@@ -1,9 +1,10 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, Shield, Truck, Star, Check, Store, Building2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getProductById, getProductBySlug, type Product } from "../../api/products";
 import { ProductImage } from "../../components/ProductImage";
 import { useAuth } from "../../context/AuthContext";
+import { useCart } from "../../context/CartContext";
 
 const defaultSpecs = [
   { label: "Incluye", value: "—" },
@@ -11,9 +12,12 @@ const defaultSpecs = [
 
 export function Product() {
   const { id, storeSlug, productSlug } = useParams<{ id?: string; storeSlug?: string; productSlug?: string }>();
+  const navigate = useNavigate();
   const { user } = useAuth();
+  const { addItem } = useCart();
   const isRetailer = user?.hasStoreProfile ?? false;
   const [quantity, setQuantity] = useState(1);
+  const [addedToCart, setAddedToCart] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -201,13 +205,36 @@ export function Product() {
                   ))}
                 </select>
               </label>
-              <Link
-                to={`/carrito?add=${product.id}&qty=${quantity}`}
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 font-semibold bg-cosmos-accent text-cosmos-bg border-0 rounded-xl hover:bg-cosmos-accent-hover transition-all shadow-lg shadow-cosmos-accent/20 hover:shadow-xl hover:shadow-cosmos-accent/25"
-              >
-                <ShoppingCart size={22} />
-                Agregar al carrito — US$ {total.toFixed(2)}
-              </Link>
+              {product.sellerStoreId && product.providerId ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    addItem({
+                      productId: product.id,
+                      storeId: product.sellerStoreId!,
+                      providerId: product.providerId!,
+                      quantity,
+                      name: product.name,
+                      price: product.price,
+                      image: product.image,
+                      productSlug: product.slug,
+                      storeSlug: product.sellerStoreSlug,
+                      currency: "USD",
+                    });
+                    setAddedToCart(true);
+                    setTimeout(() => setAddedToCart(false), 2000);
+                    navigate("/carrito");
+                  }}
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 font-semibold bg-cosmos-accent text-cosmos-bg border-0 rounded-xl hover:bg-cosmos-accent-hover transition-all shadow-lg shadow-cosmos-accent/20 hover:shadow-xl hover:shadow-cosmos-accent/25"
+                >
+                  <ShoppingCart size={22} />
+                  {addedToCart ? "Añadido" : `Agregar al carrito — US$ ${total.toFixed(2)}`}
+                </button>
+              ) : (
+                <span className="inline-flex items-center gap-2 px-6 py-3 text-cosmos-muted border border-cosmos-border rounded-xl">
+                  Este producto no está disponible para compra en este momento.
+                </span>
+              )}
             </div>
           </div>
         </div>
