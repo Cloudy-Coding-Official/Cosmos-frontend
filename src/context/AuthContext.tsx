@@ -6,7 +6,7 @@ export type UserRole = "comprador" | "retailer" | "proveedor";
 
 function deriveFrontendRole(user: AuthUser | null): UserRole | null {
   if (!user) return null;
-  if (user.hasProviderProfile) return "proveedor";
+  if (user.hasProviderProfile || user.pendingProvider) return "proveedor";
   if (user.hasStoreProfile) return "retailer";
   return "comprador";
 }
