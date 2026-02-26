@@ -10,7 +10,7 @@ export function AuthLayout({ children, wide }: AuthLayoutProps) {
   return (
     <div className="min-h-[calc(100vh-72px)] flex">
       <div className="flex-1 flex items-center justify-center py-12 px-6 lg:px-12 bg-cosmos-bg">
-        <div className={`w-full ${wide ? "max-w-[520px]" : "max-w-[420px]"}`}>
+        <div className={`w-full ${wide ? "max-w-[580px]" : "max-w-[460px]"}`}>
           {children}
         </div>
       </div>
