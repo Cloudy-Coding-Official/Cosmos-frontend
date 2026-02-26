@@ -2,15 +2,36 @@ import { Link } from "react-router-dom";
 import { User, MapPin, CheckCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { getProviderById, updateProvider, type ProviderProfile, type UpdateProviderPayload } from "../../api/providers";
+import {
+  getProviderById,
+  createProvider,
+  updateProvider,
+  type ProviderProfile,
+  type CreateProviderPayload,
+} from "../../api/providers";
 import { getErrorMessage } from "../../api/client";
+import { COUNTRIES } from "../../data/countries";
+
+const inputBase =
+  "w-full px-4 py-2.5 bg-cosmos-bg border border-cosmos-border text-cosmos-text rounded-lg focus:outline-none focus:border-cosmos-accent";
+const selectBase = `${inputBase} appearance-none cursor-pointer`;
 
 export function ProveedoresPerfil() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const providerId = user?.providerProfileId ?? null;
   const [profile, setProfile] = useState<ProviderProfile | null>(null);
-  const [form, setForm] = useState<UpdateProviderPayload>({});
-  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState<{
+    legalName: string;
+    taxId: string;
+    country: string;
+    requireStoreApproval?: boolean;
+  }>({
+    legalName: "",
+    taxId: "",
+    country: user?.country && user.country !== "XX" ? user.country : "",
+    requireStoreApproval: true,
+  });
+  const [loading, setLoading] = useState(!!providerId);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -18,6 +39,10 @@ export function ProveedoresPerfil() {
   useEffect(() => {
     if (!providerId) {
       setLoading(false);
+      setForm((f) => ({
+        ...f,
+        country: user?.country && user.country !== "XX" ? user.country : "",
+      }));
       return;
     }
     let cancelled = false;
@@ -43,39 +68,47 @@ export function ProveedoresPerfil() {
     return () => {
       cancelled = true;
     };
-  }, [providerId]);
+  }, [providerId, user?.country]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!providerId) return;
     setError(null);
     setSuccess(false);
     setSaving(true);
+    const countryCode = form.country?.trim() || user?.country || "AR";
     try {
-      const updated = await updateProvider(providerId, {
-        legalName: form.legalName?.trim(),
-        taxId: form.taxId?.trim(),
-        country: form.country?.trim(),
-        requireStoreApproval: form.requireStoreApproval,
-      });
-      setProfile(updated);
-      setSuccess(true);
+      if (!providerId) {
+        const payload: CreateProviderPayload = {
+          legalName: (form.legalName ?? "").trim(),
+          taxId: (form.taxId ?? "").trim(),
+          country: countryCode,
+          requireStoreApproval: form.requireStoreApproval !== false,
+        };
+        if (!payload.legalName || !payload.taxId) {
+          setError("Razón social y CUIT son obligatorios.");
+          setSaving(false);
+          return;
+        }
+        const created = await createProvider(payload);
+        setProfile(created);
+        await refreshUser();
+        setSuccess(true);
+      } else {
+        const updated = await updateProvider(providerId, {
+          legalName: form.legalName?.trim(),
+          taxId: form.taxId?.trim(),
+          country: countryCode,
+          requireStoreApproval: form.requireStoreApproval,
+        });
+        setProfile(updated);
+        setSuccess(true);
+      }
     } catch (err) {
       setError(getErrorMessage(err, "Error al guardar"));
     } finally {
       setSaving(false);
     }
   };
-
-  if (!providerId) {
-    return (
-      <div className="min-h-screen bg-cosmos-bg py-8 md:py-12">
-        <div className="w-full max-w-[1200px] mx-auto px-6">
-          <p className="text-cosmos-muted">No tenés un perfil de proveedor.</p>
-        </div>
-      </div>
-    );
-  }
 
   if (loading) {
     return (
@@ -102,10 +135,12 @@ export function ProveedoresPerfil() {
           </div>
           <div>
             <h1 className="font-display font-semibold text-cosmos-text text-2xl m-0 mb-1">
-              Mi perfil
+              {providerId ? "Mi perfil" : "Completar datos de tu empresa"}
             </h1>
             <p className="text-cosmos-muted text-sm m-0">
-              Es lo que ven los retailers cuando entran a tu perfil.
+              {providerId
+                ? "Es lo que ven los retailers cuando entran a tu perfil."
+                : "Cargá razón social, CUIT y país para crear tu perfil de proveedor."}
             </p>
           </div>
         </div>
@@ -118,7 +153,7 @@ export function ProveedoresPerfil() {
         {success && (
           <p className="flex items-center gap-2 text-green-600 dark:text-green-400 mb-6" role="status">
             <CheckCircle size={18} />
-            Perfil actualizado.
+            {providerId ? "Perfil actualizado." : "Perfil creado. Ya podés usar el panel de proveedor."}
           </p>
         )}
 
@@ -129,9 +164,9 @@ export function ProveedoresPerfil() {
               <input
                 type="text"
                 required
-                value={form.legalName ?? ""}
+                value={form.legalName}
                 onChange={(e) => setForm((f) => ({ ...f, legalName: e.target.value }))}
-                className="w-full px-4 py-2.5 bg-cosmos-bg border border-cosmos-border text-cosmos-text rounded-lg focus:outline-none focus:border-cosmos-accent"
+                className={inputBase}
                 placeholder="Ej. Mi Empresa S.A."
               />
             </div>
@@ -140,9 +175,9 @@ export function ProveedoresPerfil() {
               <input
                 type="text"
                 required
-                value={form.taxId ?? ""}
+                value={form.taxId}
                 onChange={(e) => setForm((f) => ({ ...f, taxId: e.target.value }))}
-                className="w-full px-4 py-2.5 bg-cosmos-bg border border-cosmos-border text-cosmos-text rounded-lg focus:outline-none focus:border-cosmos-accent"
+                className={inputBase}
                 placeholder="Ej. 30-12345678-9"
               />
             </div>
@@ -151,14 +186,19 @@ export function ProveedoresPerfil() {
                 <MapPin size={14} />
                 País *
               </label>
-              <input
-                type="text"
+              <select
                 required
-                value={form.country ?? ""}
+                value={form.country || ""}
                 onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
-                className="w-full px-4 py-2.5 bg-cosmos-bg border border-cosmos-border text-cosmos-text rounded-lg focus:outline-none focus:border-cosmos-accent"
-                placeholder="Ej. AR, MX, UY"
-              />
+                className={selectBase}
+              >
+                <option value="">Seleccionar país</option>
+                {COUNTRIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="flex items-center gap-3 pt-2">
               <input
@@ -169,7 +209,7 @@ export function ProveedoresPerfil() {
                 className="w-4 h-4 rounded border-cosmos-border text-cosmos-accent focus:ring-cosmos-accent"
               />
               <label htmlFor="requireStoreApproval" className="text-sm text-cosmos-text cursor-pointer">
-                Requerir que las tiendas soliciten acceso para vender mis productos (recomendado). Si está desactivado, cualquier retailer puede agregar tus productos directamente.
+                Requerir que las tiendas soliciten acceso para vender mis productos (recomendado).
               </label>
             </div>
           </div>
@@ -187,7 +227,7 @@ export function ProveedoresPerfil() {
               disabled={saving}
               className="px-6 py-2.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover disabled:opacity-50"
             >
-              {saving ? "Guardando…" : "Guardar cambios"}
+              {saving ? "Guardando…" : providerId ? "Guardar cambios" : "Crear perfil de proveedor"}
             </button>
           </div>
         </form>
