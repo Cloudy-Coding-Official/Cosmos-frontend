@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Navigate, Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import type { UserRole } from "../context/AuthContext";
@@ -9,7 +9,6 @@ import { SectionPreview } from "./SectionPreview";
 
 type ProtectedRouteProps = {
   allowedRoles?: UserRole[];
-  /** Si es true, en la ruta principal (índice) se muestra una preview no interactiva y la opción de expandir cuenta en lugar de bloquear. */
   allowPreview?: boolean;
 };
 
@@ -155,6 +154,35 @@ export function ProtectedRoute({ allowedRoles, allowPreview }: ProtectedRoutePro
   const [expandModalOpen, setExpandModalOpen] = useState(false);
   const [expanding, setExpanding] = useState(false);
   const [expandError, setExpandError] = useState<string | null>(null);
+  const [checkingStaleAccess, setCheckingStaleAccess] = useState(false);
+  const hasRefreshedForRoleRoute = useRef(false);
+
+  const requiredRole = allowedRoles != null && allowedRoles.length > 0 ? allowedRoles[0] : null;
+  const basePath = requiredRole ? ROLE_TO_BASE_PATH[requiredRole] : null;
+  const isIndexRoute = basePath != null && (location.pathname === basePath || location.pathname === basePath + "/");
+  const isRetailerOrProveedorIndex =
+    isIndexRoute && requiredRole && (requiredRole === "retailer" || requiredRole === "proveedor");
+  const hasAccessToRequiredRole =
+    !requiredRole ||
+    (requiredRole === "retailer" && !!user?.hasStoreProfile) ||
+    (requiredRole === "proveedor" && (!!user?.hasProviderProfile || !!user?.pendingProvider)) ||
+    ((requiredRole !== "retailer" && requiredRole !== "proveedor") && userRole != null && !!allowedRoles?.includes(userRole));
+  const accessDenied =
+    allowedRoles != null && allowedRoles.length > 0 && !hasAccessToRequiredRole;
+  const wouldShowExpandPreview =
+    allowPreview && accessDenied && requiredRole && isIndexRoute && (requiredRole === "retailer" || requiredRole === "proveedor");
+
+  useEffect(() => {
+    if (!isRetailerOrProveedorIndex) {
+      hasRefreshedForRoleRoute.current = false;
+      return;
+    }
+    if (!user) return;
+    if (hasRefreshedForRoleRoute.current) return;
+    hasRefreshedForRoleRoute.current = true;
+    setCheckingStaleAccess(true);
+    refreshUser().finally(() => setCheckingStaleAccess(false));
+  }, [isRetailerOrProveedorIndex, user, refreshUser, location.pathname]);
 
   const openExpandModal = () => {
     setExpandModalOpen(true);
@@ -166,7 +194,9 @@ export function ProtectedRoute({ allowedRoles, allowPreview }: ProtectedRoutePro
     setExpandError(null);
   };
 
-  if (loading) {
+  const mustWaitForRefresh =
+    isRetailerOrProveedorIndex && !!user && !hasRefreshedForRoleRoute.current;
+  if (loading || checkingStaleAccess || mustWaitForRefresh) {
     return (
       <div className="min-h-[40vh] flex items-center justify-center">
         <p className="text-cosmos-muted">Cargando…</p>
@@ -178,12 +208,7 @@ export function ProtectedRoute({ allowedRoles, allowPreview }: ProtectedRoutePro
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  const requiredRole = allowedRoles != null && allowedRoles.length > 0 ? allowedRoles[0] : null;
-  const accessDenied =
-    allowedRoles != null && allowedRoles.length > 0 && userRole != null && !allowedRoles.includes(userRole);
-  const basePath = requiredRole ? ROLE_TO_BASE_PATH[requiredRole] : null;
-  const isIndexRoute = basePath != null && (location.pathname === basePath || location.pathname === basePath + "/");
-  const showPreview = allowPreview && accessDenied && requiredRole && isIndexRoute;
+  const showPreview = wouldShowExpandPreview;
   const redirectToPreview = allowPreview && accessDenied && requiredRole && basePath && !isIndexRoute && location.pathname.startsWith(basePath);
 
   if (redirectToPreview && basePath) {
