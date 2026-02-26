@@ -10,6 +10,7 @@ export type AuthUser = {
   role: UserRoleBackend;
   kycStatus: string;
   country: string;
+  pendingProvider?: boolean;
   providers: string[];
   walletAddresses: string[];
   hasBuyerProfile: boolean;
