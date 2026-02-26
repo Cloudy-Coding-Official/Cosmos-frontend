@@ -8,6 +8,7 @@ import { useGoogleSignIn } from "../hooks/useGoogleSignIn";
 import * as authApi from "../api/auth";
 import { getErrorMessage } from "../api/client";
 import type { RegisterWithGooglePayload } from "../api/auth";
+import { COUNTRIES } from "../data/countries";
 
 export type OnboardRole = "comprador" | "retailer" | "proveedor";
 
@@ -50,7 +51,7 @@ export function Onboard() {
         const res = await authApi.registerWithGoogle({ idToken, ...data });
         setUser(res.user);
         login(
-          res.user.hasProviderProfile ? "proveedor" : res.user.hasStoreProfile ? "retailer" : "comprador"
+          res.user.hasProviderProfile || res.user.pendingProvider ? "proveedor" : res.user.hasStoreProfile ? "retailer" : "comprador"
         );
         if (data.role === "retailer") navigate("/retailer");
         else if (data.role === "proveedor") navigate("/proveedores");
@@ -109,7 +110,7 @@ export function Onboard() {
         sessionStorage.removeItem(WALLET_ONBOARDING_KEY);
         setUser(res.user);
         login(
-          res.user.hasProviderProfile ? "proveedor" : res.user.hasStoreProfile ? "retailer" : "comprador"
+          res.user.hasProviderProfile || res.user.pendingProvider ? "proveedor" : res.user.hasStoreProfile ? "retailer" : "comprador"
         );
         if (role === "retailer") navigate("/retailer");
         else if (role === "proveedor") navigate("/proveedores");
@@ -168,7 +169,7 @@ export function Onboard() {
       }
       setUser(user);
       login(
-        user.hasProviderProfile ? "proveedor" : user.hasStoreProfile ? "retailer" : "comprador"
+        user.hasProviderProfile || user.pendingProvider ? "proveedor" : user.hasStoreProfile ? "retailer" : "comprador"
       );
       if (role === "retailer") navigate("/retailer");
       else if (role === "proveedor") navigate("/proveedores");
@@ -317,19 +318,11 @@ export function Onboard() {
                   <span className="text-xs font-medium uppercase tracking-wider text-cosmos-muted">País</span>
                   <select className={inputBase} value={country} onChange={(e) => setCountry(e.target.value)}>
                     <option value="">Seleccionar país</option>
-                    <option value="AR">Argentina</option>
-                    <option value="MX">México</option>
-                    <option value="CO">Colombia</option>
-                    <option value="CL">Chile</option>
-                    <option value="PE">Perú</option>
-                    <option value="EC">Ecuador</option>
-                    <option value="UY">Uruguay</option>
-                    <option value="PY">Paraguay</option>
-                    <option value="BO">Bolivia</option>
-                    <option value="US">Estados Unidos</option>
-                    <option value="ES">España</option>
-                    <option value="BR">Brasil</option>
-                    <option value="XX">Otro</option>
+                    {COUNTRIES.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.name}
+                      </option>
+                    ))}
                   </select>
                 </label>
               </form>
