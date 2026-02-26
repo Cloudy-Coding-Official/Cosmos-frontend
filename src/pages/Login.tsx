@@ -28,14 +28,14 @@ export function Login() {
         const res = await authApi.googleAuth({ idToken });
         setUser(res.user);
         const hasAnyProfile =
-          res.user.hasBuyerProfile || res.user.hasStoreProfile || res.user.hasProviderProfile;
+          res.user.hasBuyerProfile || res.user.hasStoreProfile || res.user.hasProviderProfile || res.user.pendingProvider;
         if (!hasAnyProfile) {
           login("comprador");
           navigate("/onboard?from=google");
           return;
         }
         login(
-          res.user.hasProviderProfile ? "proveedor" : res.user.hasStoreProfile ? "retailer" : "comprador"
+          res.user.hasProviderProfile || res.user.pendingProvider ? "proveedor" : res.user.hasStoreProfile ? "retailer" : "comprador"
         );
         navigate("/perfil");
       } catch (err) {
@@ -61,7 +61,7 @@ export function Login() {
     try {
       const res = await authApi.login({ email, password });
       setUser(res.user);
-      login(res.user.hasProviderProfile ? "proveedor" : res.user.hasStoreProfile ? "retailer" : "comprador");
+      login(res.user.hasProviderProfile || res.user.pendingProvider ? "proveedor" : res.user.hasStoreProfile ? "retailer" : "comprador");
       navigate("/perfil");
     } catch (err) {
       setError(getErrorMessage(err, "Error al iniciar sesión"));
@@ -98,14 +98,14 @@ export function Login() {
       });
       setUser(res.user);
       const hasAnyProfile =
-        res.user.hasBuyerProfile || res.user.hasStoreProfile || res.user.hasProviderProfile;
+        res.user.hasBuyerProfile || res.user.hasStoreProfile || res.user.hasProviderProfile || res.user.pendingProvider;
       if (!hasAnyProfile) {
         login("comprador");
         navigate("/onboard?from=wallet");
         return;
       }
       login(
-        res.user.hasProviderProfile ? "proveedor" : res.user.hasStoreProfile ? "retailer" : "comprador"
+        res.user.hasProviderProfile || res.user.pendingProvider ? "proveedor" : res.user.hasStoreProfile ? "retailer" : "comprador"
       );
       navigate("/perfil");
     } catch (err) {
