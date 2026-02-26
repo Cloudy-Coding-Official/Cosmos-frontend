@@ -23,9 +23,9 @@ const GUEST_NAV_ITEMS: NavigationItem[] = [
 export function getNavigationItems(user: AuthUser | null): NavigationItem[] {
   if (!user) return GUEST_NAV_ITEMS;
 
-  const hasBuyer = user.hasBuyerProfile;
-  const hasRetailer = user.hasStoreProfile;
-  const hasProvider = user.hasProviderProfile;
+  const hasBuyer = !!user.hasBuyerProfile;
+  const hasRetailer = !!user.hasStoreProfile;
+  const hasProvider = !!user.hasProviderProfile || !!user.pendingProvider;
 
   const byRole: Record<string, boolean> = {
     BUYER: hasBuyer,
