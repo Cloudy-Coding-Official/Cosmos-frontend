@@ -255,7 +255,7 @@ export function PurchaseTracking() {
                 marcarEnCamino(order.id);
                 setLocalOrder(getOrder(order.id)!);
               }}
-              className="px-4 py-2 text-sm font-medium bg-amber-500/20 text-amber-400 rounded-lg hover:bg-amber-500/30"
+              className="px-4 py-2 text-sm font-medium bg-amber-500/20 text-amber-400 rounded-lg hover:bg-amber-500/30 transition-colors"
             >
               Marcar como En Camino
             </button>
@@ -289,7 +289,7 @@ export function PurchaseTracking() {
                 <button
                   type="submit"
                   disabled={enviado}
-                  className="px-6 py-3 font-medium bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover disabled:opacity-50"
+                  className="px-6 py-3 font-medium bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Confirmar
                 </button>

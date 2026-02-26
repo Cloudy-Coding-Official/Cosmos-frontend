@@ -347,7 +347,7 @@ export function Checkout() {
                   <button
                     type="button"
                     onClick={handleAnterior}
-                    className="flex-1 py-3 font-medium border border-cosmos-border rounded-lg text-cosmos-text hover:border-cosmos-accent hover:text-cosmos-accent"
+                    className="flex-1 py-3 font-medium border border-cosmos-border rounded-lg text-cosmos-text hover:border-cosmos-accent hover:text-cosmos-accent hover:bg-cosmos-surface-elevated transition-colors"
                   >
                     Atrás
                   </button>
@@ -366,7 +366,7 @@ export function Checkout() {
                     type="button"
                     onClick={handleConfirmar}
                     disabled={enviando}
-                    className="flex-1 py-3 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover disabled:opacity-70"
+                    className="flex-1 py-3 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                   >
                     {enviando ? "Procesando…" : "Confirmar y pagar"}
                   </button>

@@ -123,7 +123,7 @@ export function Cart() {
                     <button
                       type="button"
                       onClick={() => removeItem(item.productId, item.storeId)}
-                      className="inline-flex items-center gap-2 text-sm text-cosmos-muted hover:text-red-400 transition-colors"
+                      className="inline-flex items-center gap-2 text-sm text-cosmos-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg px-2 py-1 -mx-2 -my-1 transition-colors"
                       aria-label="Quitar"
                     >
                       <Trash2 size={18} />

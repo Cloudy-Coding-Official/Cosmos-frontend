@@ -25,7 +25,7 @@ export function ProveedorCompleteProfileGate() {
           </p>
           <Link
             to="/proveedores/perfil"
-            className="inline-block w-full px-6 py-3.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover transition-colors text-center"
+            className="inline-block w-full px-6 py-3.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover transition-colors text-center disabled:cursor-not-allowed"
           >
             Completar datos
           </Link>

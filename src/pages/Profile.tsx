@@ -269,7 +269,7 @@ export function Profile() {
                       setSaveError("");
                       setIsEditing(true);
                     }}
-                    className="mt-4 px-5 py-2.5 text-sm font-medium text-cosmos-accent hover:text-cosmos-accent-hover border border-cosmos-accent/50 rounded-xl hover:bg-cosmos-accent-soft transition-all"
+                    className="mt-4 px-5 py-2.5 text-sm font-medium text-cosmos-accent hover:text-cosmos-accent-hover border border-cosmos-accent/50 rounded-xl hover:bg-cosmos-accent-soft transition-colors"
                   >
                     Editar perfil
                   </button>
@@ -321,7 +321,7 @@ export function Profile() {
                     <button
                       type="submit"
                       disabled={saving}
-                      className="px-5 py-2.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover transition-colors disabled:opacity-60"
+                      className="px-5 py-2.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       {saving ? "Guardando…" : "Guardar"}
                     </button>
@@ -422,7 +422,7 @@ export function Profile() {
           {(user?.hasStoreProfile || user?.hasProviderProfile) && (
             <Link
               to="/retailer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-cosmos-text border border-cosmos-border rounded-xl hover:border-cosmos-accent hover:text-cosmos-accent hover:bg-cosmos-surface-elevated transition-all"
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-cosmos-text border border-cosmos-border rounded-xl hover:border-cosmos-accent hover:text-cosmos-accent hover:bg-cosmos-surface-elevated transition-colors"
             >
               <Store size={18} />
               Ir a mi tienda
@@ -439,7 +439,7 @@ export function Profile() {
             <button
               type="button"
               onClick={openPasswordModal}
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-cosmos-text border border-cosmos-border rounded-xl hover:border-cosmos-accent hover:text-cosmos-accent hover:bg-cosmos-surface-elevated transition-all"
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-cosmos-text border border-cosmos-border rounded-xl hover:border-cosmos-accent hover:text-cosmos-accent hover:bg-cosmos-surface-elevated transition-colors"
             >
               <Key size={18} />
               Cambiar contraseña
@@ -455,7 +455,7 @@ export function Profile() {
           <button
             type="button"
             onClick={handleLogout}
-            className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-cosmos-muted hover:text-red-400 transition-colors rounded-xl hover:bg-red-500/10"
+            className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-cosmos-muted hover:text-red-400 rounded-xl hover:bg-red-500/10 transition-colors"
           >
             <LogOut size={18} />
             Cerrar sesión
@@ -542,7 +542,7 @@ export function Profile() {
                 <button
                   type="submit"
                   disabled={passwordLoading}
-                  className="px-5 py-2.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover transition-colors disabled:opacity-60"
+                  className="px-5 py-2.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {passwordLoading ? "Guardando…" : "Cambiar contraseña"}
                 </button>

@@ -111,7 +111,7 @@ export function SectionPreview({ section, onExpandAccount }: SectionPreviewProps
           <button
             type="button"
             onClick={onExpandAccount}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 font-medium bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 font-medium bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover transition-colors disabled:cursor-not-allowed"
           >
             Expandir cuenta
           </button>

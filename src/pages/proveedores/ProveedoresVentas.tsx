@@ -123,7 +123,7 @@ export function ProveedoresVentas() {
             type="button"
             onClick={() => setTab("ventas")}
             className={`text-sm font-medium transition-colors ${
-              tab === "ventas" ? "text-cosmos-accent" : "text-cosmos-muted hover:text-cosmos-text"
+              tab === "ventas" ? "text-cosmos-accent" : "text-cosmos-muted hover:text-cosmos-text transition-colors"
             }`}
           >
             Pedidos
@@ -132,7 +132,7 @@ export function ProveedoresVentas() {
             type="button"
             onClick={() => setTab("transacciones")}
             className={`text-sm font-medium transition-colors ${
-              tab === "transacciones" ? "text-cosmos-accent" : "text-cosmos-muted hover:text-cosmos-text"
+              tab === "transacciones" ? "text-cosmos-accent" : "text-cosmos-muted hover:text-cosmos-text transition-colors"
             }`}
           >
             Transacciones

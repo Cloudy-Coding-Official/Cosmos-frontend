@@ -309,7 +309,7 @@ export function RetailerStoreProducts() {
                               type="button"
                               onClick={cancelEdit}
                               disabled={isSaving}
-                              className="p-1.5 rounded-lg text-cosmos-muted hover:bg-cosmos-surface-elevated transition-colors disabled:opacity-50"
+                              className="p-1.5 rounded-lg text-cosmos-muted hover:bg-cosmos-surface-elevated transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Cancelar"
                             >
                               <X size={18} />
@@ -329,7 +329,7 @@ export function RetailerStoreProducts() {
                               type="button"
                               onClick={() => startEdit(item)}
                               disabled={busy}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-cosmos-accent border border-cosmos-accent/50 rounded-lg hover:bg-cosmos-accent/10 disabled:opacity-50"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-cosmos-accent border border-cosmos-accent/50 rounded-lg hover:bg-cosmos-accent/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <Pencil size={14} />
                               Modificar precio
@@ -338,7 +338,7 @@ export function RetailerStoreProducts() {
                               type="button"
                               onClick={() => handleRemove(item)}
                               disabled={busy}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-500 border border-red-500/30 rounded-lg hover:bg-red-500/10 disabled:opacity-50"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-500 border border-red-500/30 rounded-lg hover:bg-red-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Quitar de la tienda"
                             >
                               <Trash2 size={14} />

@@ -225,7 +225,7 @@ export function ProveedoresPerfil() {
             <button
               type="submit"
               disabled={saving}
-              className="px-6 py-2.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover disabled:opacity-50"
+              className="px-6 py-2.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? "Guardando…" : providerId ? "Guardar cambios" : "Crear perfil de proveedor"}
             </button>

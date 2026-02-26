@@ -311,7 +311,7 @@ export function RetailerProviderProfile() {
                         <button
                           type="button"
                           onClick={() => openManageModal(p.id, p.name, toNum(p.suggestedPrice))}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-cosmos-accent border border-cosmos-accent/50 rounded-lg hover:bg-cosmos-accent/10"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-cosmos-accent border border-cosmos-accent/50 rounded-lg hover:bg-cosmos-accent/10 transition-colors"
                         >
                           <Settings2 size={14} />
                           Administrar
@@ -445,7 +445,7 @@ export function RetailerProviderProfile() {
                           type="button"
                           onClick={() => handleAddToStore(store.id)}
                           disabled={busy || !Number.isFinite(parseFloat(priceByStoreId[store.id] ?? "")) || parseFloat(priceByStoreId[store.id] ?? "0") < 0}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-cosmos-accent border border-cosmos-accent/50 rounded-lg hover:bg-cosmos-accent/10 disabled:opacity-50"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-cosmos-accent border border-cosmos-accent/50 rounded-lg hover:bg-cosmos-accent/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {isAdding ? (requireApprovalForStore(store.id) ? "Enviando…" : "Agregando…") : requireApprovalForStore(store.id) ? "Solicitar acceso" : "Agregar"}
                         </button>
@@ -460,7 +460,7 @@ export function RetailerProviderProfile() {
                 type="button"
                 onClick={closeManageModal}
                 disabled={!!addingToStoreId || !!removingFromStoreId}
-                className="w-full px-4 py-2.5 font-medium text-cosmos-muted border border-cosmos-border rounded-xl hover:bg-cosmos-surface-elevated transition-colors disabled:opacity-60"
+                className="w-full px-4 py-2.5 font-medium text-cosmos-muted border border-cosmos-border rounded-xl hover:bg-cosmos-surface-elevated hover:border-cosmos-border-strong transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Cerrar
               </button>

@@ -158,7 +158,7 @@ export function ProveedoresProductos() {
                     <button
                       type="button"
                       onClick={() => navigate(`/proveedores/productos/editar/${product.id}`)}
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-cosmos-accent border border-cosmos-accent/50 rounded-lg hover:bg-cosmos-accent/10"
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-cosmos-accent border border-cosmos-accent/50 rounded-lg hover:bg-cosmos-accent/10 transition-colors"
                     >
                       <Pencil size={14} />
                       Editar
@@ -167,7 +167,7 @@ export function ProveedoresProductos() {
                       type="button"
                       onClick={() => handleDelete(product.id)}
                       disabled={deletingId === product.id}
-                      className="inline-flex items-center justify-center p-2 text-cosmos-muted hover:text-red-500 border border-cosmos-border rounded-lg hover:border-red-500/50 disabled:opacity-50"
+                      className="inline-flex items-center justify-center p-2 text-cosmos-muted hover:text-red-500 border border-cosmos-border rounded-lg hover:border-red-500/50 hover:bg-red-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Desactivar"
                     >
                       <Trash2 size={14} />

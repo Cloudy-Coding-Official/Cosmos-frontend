@@ -57,14 +57,14 @@ export function Header() {
           ) : (
             <Link
               to="/login"
-              className="hidden md:inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover"
+              className="hidden md:inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover transition-colors"
             >
               Iniciar sesión
             </Link>
           )}
           <button
             type="button"
-            className="flex md:hidden items-center justify-center w-10 h-10 p-0 bg-transparent border-0 text-cosmos-text cursor-pointer rounded-lg hover:bg-cosmos-surface-elevated"
+            className="flex md:hidden items-center justify-center w-10 h-10 p-0 bg-transparent border-0 text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated transition-colors"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
           >

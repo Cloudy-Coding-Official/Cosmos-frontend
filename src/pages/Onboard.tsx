@@ -350,7 +350,7 @@ export function Onboard() {
                     type="button"
                     onClick={handleFinish}
                     disabled={finishLoading}
-                    className="w-full px-6 py-3.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover transition-colors disabled:opacity-60"
+                    className="w-full px-6 py-3.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {finishLoading ? "Creando cuenta…" : "Crear cuenta"}
                   </button>
@@ -373,7 +373,7 @@ export function Onboard() {
                     type="button"
                     onClick={handleFinish}
                     disabled={finishLoading || !googleReady}
-                    className="w-full px-6 py-3.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover transition-colors disabled:opacity-60"
+                    className="w-full px-6 py-3.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {finishLoading ? "Creando cuenta…" : "Continuar con Google y crear cuenta"}
                   </button>
@@ -396,7 +396,7 @@ export function Onboard() {
                     type="button"
                     onClick={handleFinish}
                     disabled={finishLoading}
-                    className="w-full px-6 py-3.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover transition-colors disabled:opacity-60"
+                    className="w-full px-6 py-3.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {finishLoading ? "Creando cuenta…" : "Crear cuenta"}
                   </button>
@@ -414,7 +414,7 @@ export function Onboard() {
                   Atrás
                 </button>
               ) : (
-                <Link to="/" className="flex items-center gap-2 px-4 py-3 font-medium text-cosmos-muted border border-cosmos-border rounded-lg hover:bg-cosmos-surface-elevated transition-colors">
+                <Link to="/" className="flex items-center gap-2 px-4 py-3 font-medium text-cosmos-muted border border-cosmos-border rounded-lg hover:bg-cosmos-surface-elevated hover:border-cosmos-border-strong transition-colors">
                   Cancelar
                 </Link>
               )}
@@ -422,7 +422,7 @@ export function Onboard() {
                 type="button"
                 onClick={handleNext}
                 disabled={!canProceed()}
-                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {step === totalSteps - 1 ? "Crear cuenta" : "Siguiente"} <ChevronRight size={18} />
               </button>

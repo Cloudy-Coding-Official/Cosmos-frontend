@@ -133,7 +133,7 @@ export function ProveedoresSolicitudes() {
                       type="button"
                       onClick={() => handleApprove(r.id, false)}
                       disabled={busy}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Solo este producto"
                     >
                       <Check size={16} />
@@ -153,7 +153,7 @@ export function ProveedoresSolicitudes() {
                       type="button"
                       onClick={() => handleReject(r.id)}
                       disabled={busy}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-500/10 border border-red-500/30 rounded-lg disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-500/10 border border-red-500/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <X size={16} />
                       Rechazar

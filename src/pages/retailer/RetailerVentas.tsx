@@ -181,7 +181,7 @@ export function RetailerVentas() {
                         <button
                           type="button"
                           onClick={() => setExpandedId(expandedId === venta.id ? null : venta.id)}
-                          className="inline-flex items-center gap-1 text-xs font-medium text-cosmos-accent hover:underline"
+                          className="inline-flex items-center gap-1 text-xs font-medium text-cosmos-accent hover:underline transition-colors"
                         >
                           {expandedId === venta.id ? (
                             <>Ocultar <ChevronUp size={14} /></>

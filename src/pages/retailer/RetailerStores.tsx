@@ -150,7 +150,7 @@ export function RetailerStores() {
                       setCreateError(null);
                     }}
                     disabled={creating}
-                    className="flex-1 px-4 py-2.5 font-medium text-cosmos-muted border border-cosmos-border rounded-xl hover:bg-cosmos-surface-elevated transition-colors disabled:opacity-60"
+                    className="flex-1 px-4 py-2.5 font-medium text-cosmos-muted border border-cosmos-border rounded-xl hover:bg-cosmos-surface-elevated hover:border-cosmos-border-strong transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     Cancelar
                   </button>

@@ -29,7 +29,7 @@ export function ResetPassword() {
               required
             />
           </label>
-          <button type="submit" className="px-6 py-3.5 font-medium bg-cosmos-accent text-cosmos-bg border-0 rounded-lg hover:bg-cosmos-accent-hover transition-colors cursor-pointer shadow-lg">
+          <button type="submit" className="px-6 py-3.5 font-medium bg-cosmos-accent text-cosmos-bg border-0 rounded-lg hover:bg-cosmos-accent-hover transition-colors shadow-lg disabled:opacity-60 disabled:cursor-not-allowed">
             Enviar enlace
           </button>
         </form>

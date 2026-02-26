@@ -58,7 +58,7 @@ export function AuthProviders({
                 type="button"
                 onClick={onStellarLogin}
                 disabled={stellarLoginLoading}
-                className="px-3 py-1.5 text-sm font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover disabled:opacity-60 transition-colors"
+                className="px-3 py-1.5 text-sm font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {stellarLoginLoading ? "Iniciando sesión…" : "Iniciar sesión con esta wallet"}
               </button>

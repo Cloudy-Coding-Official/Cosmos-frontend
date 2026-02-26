@@ -110,7 +110,7 @@ export function ProveedoresTiendasAutorizadas() {
                   type="button"
                   onClick={() => handleRemove(w.storeId)}
                   disabled={removingId === w.storeId}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-500/10 border border-red-500/30 rounded-lg disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-500/10 border border-red-500/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Quitar de autorizadas"
                 >
                   <Trash2 size={16} />
