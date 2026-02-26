@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { Store } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 import { getMyStores, createMyStore, type Store as StoreType } from "../../api/storeProducts";
 import { getErrorMessage } from "../../api/client";
 
@@ -8,6 +9,7 @@ const inputBase =
   "w-full px-4 py-3 font-sans text-base border border-cosmos-border bg-cosmos-surface-elevated text-cosmos-text placeholder:text-cosmos-muted focus:outline-none focus:border-cosmos-accent focus:ring-1 focus:ring-cosmos-accent rounded-lg transition-colors";
 
 export function RetailerFirstStoreGate() {
+  const { refreshUser } = useAuth();
   const [stores, setStores] = useState<StoreType[] | null>(null);
   const [storeName, setStoreName] = useState("");
   const [creating, setCreating] = useState(false);
@@ -35,6 +37,7 @@ export function RetailerFirstStoreGate() {
     try {
       const store = await createMyStore(name);
       setStores([store]);
+      await refreshUser();
     } catch (err) {
       setError(getErrorMessage(err, "No se pudo crear la tienda"));
     } finally {
