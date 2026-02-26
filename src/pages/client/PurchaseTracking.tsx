@@ -296,7 +296,7 @@ export function PurchaseTracking() {
                 <button
                   type="submit"
                   disabled={enviado}
-                  className="px-6 py-3 font-medium bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-3 font-medium bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover disabled:opacity-50"
                 >
                   Confirmar
                 </button>

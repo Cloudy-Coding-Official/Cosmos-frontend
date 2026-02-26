@@ -167,7 +167,7 @@ export function ProveedoresProductos() {
                       type="button"
                       onClick={() => handleDelete(product.id)}
                       disabled={deletingId === product.id}
-                      className="inline-flex items-center justify-center p-2 text-cosmos-muted hover:text-red-500 border border-cosmos-border rounded-lg hover:border-red-500/50 hover:bg-red-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="inline-flex items-center justify-center p-2 text-cosmos-muted hover:text-red-500 border border-cosmos-border rounded-lg hover:border-red-500/50 disabled:opacity-50"
                       title="Desactivar"
                     >
                       <Trash2 size={14} />
