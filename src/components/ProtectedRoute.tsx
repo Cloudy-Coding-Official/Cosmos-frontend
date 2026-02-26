@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Navigate, Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import type { UserRole } from "../context/AuthContext";
@@ -155,7 +155,7 @@ export function ProtectedRoute({ allowedRoles, allowPreview }: ProtectedRoutePro
   const [expanding, setExpanding] = useState(false);
   const [expandError, setExpandError] = useState<string | null>(null);
   const [checkingStaleAccess, setCheckingStaleAccess] = useState(false);
-  const hasRefreshedForRoleRoute = useRef(false);
+  const [hasRefreshedForRoleRoute, setHasRefreshedForRoleRoute] = useState(false);
 
   const requiredRole = allowedRoles != null && allowedRoles.length > 0 ? allowedRoles[0] : null;
   const basePath = requiredRole ? ROLE_TO_BASE_PATH[requiredRole] : null;
@@ -174,15 +174,17 @@ export function ProtectedRoute({ allowedRoles, allowPreview }: ProtectedRoutePro
 
   useEffect(() => {
     if (!isRetailerOrProveedorIndex) {
-      hasRefreshedForRoleRoute.current = false;
+      queueMicrotask(() => setHasRefreshedForRoleRoute(false));
       return;
     }
     if (!user) return;
-    if (hasRefreshedForRoleRoute.current) return;
-    hasRefreshedForRoleRoute.current = true;
-    setCheckingStaleAccess(true);
+    if (hasRefreshedForRoleRoute) return;
+    queueMicrotask(() => {
+      setHasRefreshedForRoleRoute(true);
+      setCheckingStaleAccess(true);
+    });
     refreshUser().finally(() => setCheckingStaleAccess(false));
-  }, [isRetailerOrProveedorIndex, user, refreshUser, location.pathname]);
+  }, [isRetailerOrProveedorIndex, user, refreshUser, location.pathname, hasRefreshedForRoleRoute]);
 
   const openExpandModal = () => {
     setExpandModalOpen(true);
@@ -195,7 +197,7 @@ export function ProtectedRoute({ allowedRoles, allowPreview }: ProtectedRoutePro
   };
 
   const mustWaitForRefresh =
-    isRetailerOrProveedorIndex && !!user && !hasRefreshedForRoleRoute.current;
+    isRetailerOrProveedorIndex && !!user && !hasRefreshedForRoleRoute;
   if (loading || checkingStaleAccess || mustWaitForRefresh) {
     return (
       <div className="min-h-[40vh] flex items-center justify-center">
