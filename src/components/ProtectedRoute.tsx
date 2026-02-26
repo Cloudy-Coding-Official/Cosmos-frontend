@@ -200,8 +200,13 @@ export function ProtectedRoute({ allowedRoles, allowPreview }: ProtectedRoutePro
     isRetailerOrProveedorIndex && !!user && !hasRefreshedForRoleRoute;
   if (loading || checkingStaleAccess || mustWaitForRefresh) {
     return (
-      <div className="min-h-[40vh] flex items-center justify-center">
-        <p className="text-cosmos-muted">Cargando…</p>
+      <div className="min-h-[40vh] w-full max-w-[1200px] mx-auto px-6 py-10">
+        <div className="skeleton-shimmer rounded-lg h-8 w-48 bg-cosmos-surface-elevated mb-6" aria-hidden />
+        <div className="space-y-4">
+          <div className="skeleton-shimmer rounded-lg h-12 w-full bg-cosmos-surface-elevated" aria-hidden />
+          <div className="skeleton-shimmer rounded-lg h-12 w-full bg-cosmos-surface-elevated" aria-hidden />
+          <div className="skeleton-shimmer rounded-lg h-12 w-3/4 bg-cosmos-surface-elevated" aria-hidden />
+        </div>
       </div>
     );
   }

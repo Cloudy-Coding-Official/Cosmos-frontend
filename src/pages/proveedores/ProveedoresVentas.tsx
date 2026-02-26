@@ -142,7 +142,20 @@ export function ProveedoresVentas() {
         {tab === "ventas" && (
           <>
             {loading ? (
-              <p className="text-cosmos-muted">Cargando ventas…</p>
+              <div className="space-y-3">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="flex items-center justify-between p-4 bg-cosmos-surface border border-cosmos-border rounded-xl">
+                    <div className="space-y-2">
+                      <div className="skeleton-shimmer rounded h-4 w-48 bg-cosmos-surface-elevated" aria-hidden />
+                      <div className="skeleton-shimmer rounded h-3 w-24 bg-cosmos-surface-elevated" aria-hidden />
+                    </div>
+                    <div className="text-right space-y-2">
+                      <div className="skeleton-shimmer rounded h-4 w-16 bg-cosmos-surface-elevated ml-auto" aria-hidden />
+                      <div className="skeleton-shimmer rounded h-3 w-14 bg-cosmos-surface-elevated ml-auto" aria-hidden />
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : ventas.length === 0 ? (
               <div className="p-8 bg-cosmos-surface border border-cosmos-border rounded-2xl text-center">
                 <TrendingUp size={40} className="text-cosmos-muted mx-auto mb-4" />
@@ -182,7 +195,14 @@ export function ProveedoresVentas() {
               </div>
             )}
             {loadingTx ? (
-              <p className="text-cosmos-muted">Cargando transacciones…</p>
+              <div className="space-y-3">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="flex items-center justify-between p-4 bg-cosmos-surface border border-cosmos-border rounded-xl">
+                    <div className="skeleton-shimmer rounded h-4 w-32 bg-cosmos-surface-elevated" aria-hidden />
+                    <div className="skeleton-shimmer rounded h-4 w-20 bg-cosmos-surface-elevated" aria-hidden />
+                  </div>
+                ))}
+              </div>
             ) : transacciones.length === 0 ? (
               <div className="p-8 bg-cosmos-surface border border-cosmos-border rounded-2xl text-center">
                 <TrendingUp size={40} className="text-cosmos-muted mx-auto mb-4" />

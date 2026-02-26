@@ -62,7 +62,15 @@ export function Product() {
     return (
       <div className="min-h-screen bg-cosmos-bg py-8 md:py-12">
         <div className="w-full max-w-[1200px] mx-auto px-6">
-          <p className="text-cosmos-muted">Cargando producto…</p>
+          <div className="grid gap-8 md:grid-cols-2">
+            <div className="skeleton-shimmer aspect-square w-full rounded-2xl bg-cosmos-surface-elevated" aria-hidden />
+            <div className="space-y-4">
+              <div className="skeleton-shimmer rounded h-8 w-3/4 bg-cosmos-surface-elevated" aria-hidden />
+              <div className="skeleton-shimmer rounded h-5 w-24 bg-cosmos-surface-elevated" aria-hidden />
+              <div className="skeleton-shimmer rounded h-4 w-full bg-cosmos-surface-elevated" aria-hidden />
+              <div className="skeleton-shimmer rounded h-4 w-2/3 bg-cosmos-surface-elevated" aria-hidden />
+            </div>
+          </div>
         </div>
       </div>
     );

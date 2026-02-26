@@ -41,8 +41,16 @@ export function ProveedoresStoreOrders() {
   if (loading) {
     return (
       <div className="min-h-screen bg-cosmos-bg py-8 md:py-12">
-        <div className="w-full max-w-[1200px] mx-auto px-6">
-          <p className="text-cosmos-muted">Cargando pedidos…</p>
+        <div className="w-full max-w-[1200px] mx-auto px-6 space-y-6">
+          <div className="skeleton-shimmer rounded h-4 w-40 bg-cosmos-surface-elevated" aria-hidden />
+          <div className="space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="p-4 bg-cosmos-surface border border-cosmos-border rounded-xl flex items-center justify-between">
+                <div className="skeleton-shimmer rounded h-4 w-28 bg-cosmos-surface-elevated" aria-hidden />
+                <div className="skeleton-shimmer rounded h-4 w-20 bg-cosmos-surface-elevated" aria-hidden />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );

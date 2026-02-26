@@ -87,8 +87,13 @@ export function ProveedoresProductoEditar() {
   if (loading) {
     return (
       <div className="min-h-screen bg-cosmos-bg py-8">
-        <div className="w-full max-w-[640px] mx-auto px-6">
-          <p className="text-cosmos-muted">Cargando…</p>
+        <div className="w-full max-w-[640px] mx-auto px-6 space-y-6">
+          <div className="skeleton-shimmer rounded h-4 w-32 bg-cosmos-surface-elevated" aria-hidden />
+          <div className="space-y-4">
+            <div className="skeleton-shimmer rounded h-10 w-full bg-cosmos-surface-elevated" aria-hidden />
+            <div className="skeleton-shimmer rounded h-10 w-full bg-cosmos-surface-elevated" aria-hidden />
+            <div className="skeleton-shimmer rounded h-24 w-full bg-cosmos-surface-elevated" aria-hidden />
+          </div>
         </div>
       </div>
     );

@@ -155,7 +155,20 @@ export function RetailerProducts() {
             </div>
           )}
           {loading ? (
-            <p className="text-cosmos-muted text-sm m-0">Cargando…</p>
+            <div className="border border-cosmos-border rounded-2xl overflow-hidden">
+              <div className="border-b border-cosmos-border px-6 py-4 flex gap-4">
+                <div className="skeleton-shimmer rounded h-4 w-20 bg-cosmos-surface-elevated" aria-hidden />
+                <div className="skeleton-shimmer rounded h-4 w-24 bg-cosmos-surface-elevated" aria-hidden />
+                <div className="skeleton-shimmer rounded h-4 w-28 bg-cosmos-surface-elevated" aria-hidden />
+              </div>
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="flex items-center gap-4 px-6 py-4 border-b border-cosmos-border last:border-b-0">
+                  <div className="skeleton-shimmer rounded h-4 w-32 bg-cosmos-surface-elevated" aria-hidden />
+                  <div className="skeleton-shimmer rounded h-4 w-20 bg-cosmos-surface-elevated" aria-hidden />
+                  <div className="skeleton-shimmer rounded h-4 w-16 bg-cosmos-surface-elevated" aria-hidden />
+                </div>
+              ))}
+            </div>
           ) : storeProducts.length === 0 ? (
             <p className="text-cosmos-muted text-sm m-0">
               Aún no tenés productos. Agregá productos desde el perfil de un{" "}

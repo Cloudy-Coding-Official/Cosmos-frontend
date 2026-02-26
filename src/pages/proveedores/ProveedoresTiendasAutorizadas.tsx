@@ -71,7 +71,20 @@ export function ProveedoresTiendasAutorizadas() {
         )}
 
         {loading ? (
-          <p className="text-cosmos-muted">Cargando…</p>
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="p-4 bg-cosmos-surface border border-cosmos-border rounded-xl flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="skeleton-shimmer w-10 h-10 rounded-lg bg-cosmos-surface-elevated shrink-0" aria-hidden />
+                  <div className="space-y-2">
+                    <div className="skeleton-shimmer rounded h-4 w-32 bg-cosmos-surface-elevated" aria-hidden />
+                    <div className="skeleton-shimmer rounded h-3 w-48 bg-cosmos-surface-elevated" aria-hidden />
+                  </div>
+                </div>
+                <div className="skeleton-shimmer rounded h-9 w-20 bg-cosmos-surface-elevated shrink-0" aria-hidden />
+              </div>
+            ))}
+          </div>
         ) : list.length === 0 ? (
           <div className="p-8 bg-cosmos-surface border border-cosmos-border rounded-2xl text-center">
             <ShieldCheck size={40} className="text-cosmos-muted mx-auto mb-4" />

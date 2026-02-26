@@ -44,8 +44,15 @@ export function PurchaseTracking() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-cosmos-bg py-16 text-center">
-        <p className="text-cosmos-muted m-0">Cargando pedido…</p>
+      <div className="min-h-screen bg-cosmos-bg py-8 md:py-12">
+        <div className="w-full max-w-[1200px] mx-auto px-6 space-y-6">
+          <div className="skeleton-shimmer rounded h-6 w-40 bg-cosmos-surface-elevated" aria-hidden />
+          <div className="p-6 bg-cosmos-surface border border-cosmos-border rounded-2xl space-y-4">
+            <div className="skeleton-shimmer rounded h-4 w-full bg-cosmos-surface-elevated" aria-hidden />
+            <div className="skeleton-shimmer rounded h-4 w-3/4 bg-cosmos-surface-elevated" aria-hidden />
+            <div className="skeleton-shimmer rounded h-4 w-1/2 bg-cosmos-surface-elevated" aria-hidden />
+          </div>
+        </div>
       </div>
     );
   }

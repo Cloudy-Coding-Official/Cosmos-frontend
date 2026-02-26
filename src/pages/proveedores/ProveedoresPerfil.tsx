@@ -113,8 +113,20 @@ export function ProveedoresPerfil() {
   if (loading) {
     return (
       <div className="min-h-screen bg-cosmos-bg py-8 md:py-12">
-        <div className="w-full max-w-[1200px] mx-auto px-6">
-          <p className="text-cosmos-muted">Cargando perfil…</p>
+        <div className="w-full max-w-[1200px] mx-auto px-6 space-y-8">
+          <div className="skeleton-shimmer rounded h-4 w-32 bg-cosmos-surface-elevated" aria-hidden />
+          <div className="flex gap-4">
+            <div className="skeleton-shimmer rounded-xl h-24 w-24 bg-cosmos-surface-elevated shrink-0" aria-hidden />
+            <div className="space-y-2 flex-1">
+              <div className="skeleton-shimmer rounded h-6 w-48 bg-cosmos-surface-elevated" aria-hidden />
+              <div className="skeleton-shimmer rounded h-4 w-64 bg-cosmos-surface-elevated" aria-hidden />
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="skeleton-shimmer rounded h-10 w-full bg-cosmos-surface-elevated" aria-hidden />
+            <div className="skeleton-shimmer rounded h-10 w-full bg-cosmos-surface-elevated" aria-hidden />
+            <div className="skeleton-shimmer rounded h-10 w-2/3 bg-cosmos-surface-elevated" aria-hidden />
+          </div>
         </div>
       </div>
     );

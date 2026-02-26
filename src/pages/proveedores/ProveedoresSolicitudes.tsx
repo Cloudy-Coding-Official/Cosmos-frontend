@@ -92,7 +92,21 @@ export function ProveedoresSolicitudes() {
         )}
 
         {loading ? (
-          <p className="text-cosmos-muted">Cargando solicitudes…</p>
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="p-4 bg-cosmos-surface border border-cosmos-border rounded-xl flex flex-wrap items-center gap-4">
+                <div className="skeleton-shimmer w-14 h-14 rounded-lg bg-cosmos-surface-elevated shrink-0" aria-hidden />
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="skeleton-shimmer rounded h-4 w-48 bg-cosmos-surface-elevated" aria-hidden />
+                  <div className="skeleton-shimmer rounded h-3 w-36 bg-cosmos-surface-elevated" aria-hidden />
+                </div>
+                <div className="flex gap-2">
+                  <div className="skeleton-shimmer rounded h-9 w-40 bg-cosmos-surface-elevated" aria-hidden />
+                  <div className="skeleton-shimmer rounded h-9 w-48 bg-cosmos-surface-elevated" aria-hidden />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : requests.length === 0 ? (
           <div className="p-8 bg-cosmos-surface border border-cosmos-border rounded-2xl text-center">
             <ClipboardCheck size={40} className="text-cosmos-muted mx-auto mb-4" />

@@ -14,7 +14,7 @@ const linkClass = (isActive: boolean) =>
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
-  const { isLoggedIn, user } = useAuth();
+  const { isLoggedIn, user, loading: authLoading } = useAuth();
   const { itemCount } = useCart();
   const navItems = getNavigationItems(user ?? null);
 
@@ -50,7 +50,12 @@ export function Header() {
               </span>
             )}
           </Link>
-          {isLoggedIn ? (
+          {authLoading ? (
+            <div
+              className="hidden md:block w-[7.5rem] h-10 rounded-lg bg-cosmos-surface-elevated skeleton-shimmer"
+              aria-hidden
+            />
+          ) : isLoggedIn ? (
             <Link to="/perfil" className="flex items-center justify-center w-10 h-10 text-cosmos-text hover:text-cosmos-accent hover:bg-cosmos-surface-elevated rounded-lg transition-colors" aria-label="Perfil">
               <User size={20} />
             </Link>
@@ -86,7 +91,9 @@ export function Header() {
             </Link>
           ))}
           <Link to="/carrito" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated">Carrito</Link>
-          {isLoggedIn ? (
+          {authLoading ? (
+            <div className="px-3 py-3 rounded-lg bg-cosmos-surface-elevated skeleton-shimmer w-24 h-10" aria-hidden />
+          ) : isLoggedIn ? (
             <Link to="/perfil" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-text rounded-lg hover:bg-cosmos-surface-elevated">Perfil</Link>
           ) : (
             <Link to="/login" onClick={() => setMenuOpen(false)} className="px-3 py-3 font-medium text-cosmos-accent rounded-lg">Iniciar sesión</Link>

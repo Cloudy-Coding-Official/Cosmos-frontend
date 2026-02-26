@@ -52,7 +52,17 @@ export function ProveedoresRetailers() {
         )}
 
         {loading ? (
-          <p className="text-cosmos-muted">Cargando tiendas…</p>
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="p-4 bg-cosmos-surface border border-cosmos-border rounded-xl">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="skeleton-shimmer rounded h-10 w-10 bg-cosmos-surface-elevated shrink-0" aria-hidden />
+                  <div className="skeleton-shimmer rounded h-5 w-32 bg-cosmos-surface-elevated" aria-hidden />
+                </div>
+                <div className="skeleton-shimmer rounded h-4 w-full bg-cosmos-surface-elevated" aria-hidden />
+              </div>
+            ))}
+          </div>
         ) : stores.length === 0 ? (
           <div className="p-8 bg-cosmos-surface border border-cosmos-border rounded-2xl text-center">
             <Store size={40} className="text-cosmos-muted mx-auto mb-4" />

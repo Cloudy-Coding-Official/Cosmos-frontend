@@ -47,8 +47,13 @@ export function RetailerFirstStoreGate() {
 
   if (stores === null) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <p className="text-cosmos-muted">Cargando…</p>
+      <div className="min-h-[60vh] w-full max-w-md mx-auto px-6 py-12 space-y-6">
+        <div className="skeleton-shimmer rounded-xl h-16 w-16 bg-cosmos-surface-elevated mx-auto" aria-hidden />
+        <div className="space-y-2 text-center">
+          <div className="skeleton-shimmer rounded h-6 w-48 bg-cosmos-surface-elevated mx-auto" aria-hidden />
+          <div className="skeleton-shimmer rounded h-4 w-64 bg-cosmos-surface-elevated mx-auto" aria-hidden />
+        </div>
+        <div className="skeleton-shimmer rounded h-12 w-full bg-cosmos-surface-elevated" aria-hidden />
       </div>
     );
   }

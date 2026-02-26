@@ -173,8 +173,29 @@ export function RetailerProviderProfile() {
   if (loading) {
     return (
       <div className="min-h-screen bg-cosmos-bg py-8">
-        <div className="w-full max-w-[1200px] mx-auto px-6">
-          <p className="text-cosmos-muted">Cargando perfil del proveedor…</p>
+        <div className="w-full max-w-[1200px] mx-auto px-6 space-y-6">
+          <div className="skeleton-shimmer rounded h-4 w-40 bg-cosmos-surface-elevated" aria-hidden />
+          <div className="flex gap-4 items-center">
+            <div className="skeleton-shimmer rounded-xl h-16 w-16 bg-cosmos-surface-elevated shrink-0" aria-hidden />
+            <div className="space-y-2">
+              <div className="skeleton-shimmer rounded h-5 w-48 bg-cosmos-surface-elevated" aria-hidden />
+              <div className="skeleton-shimmer rounded h-4 w-64 bg-cosmos-surface-elevated" aria-hidden />
+            </div>
+          </div>
+          <div className="border border-cosmos-border rounded-2xl overflow-hidden">
+            <div className="border-b border-cosmos-border px-6 py-4 flex gap-4">
+              <div className="skeleton-shimmer rounded h-4 w-24 bg-cosmos-surface-elevated" aria-hidden />
+              <div className="skeleton-shimmer rounded h-4 w-20 bg-cosmos-surface-elevated" aria-hidden />
+              <div className="skeleton-shimmer rounded h-4 w-28 bg-cosmos-surface-elevated" aria-hidden />
+            </div>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center gap-4 px-6 py-4 border-b border-cosmos-border last:border-b-0">
+                <div className="skeleton-shimmer rounded h-4 w-32 bg-cosmos-surface-elevated" aria-hidden />
+                <div className="skeleton-shimmer rounded h-4 w-16 bg-cosmos-surface-elevated" aria-hidden />
+                <div className="skeleton-shimmer rounded h-8 w-24 bg-cosmos-surface-elevated" aria-hidden />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );

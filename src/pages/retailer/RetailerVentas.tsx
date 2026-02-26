@@ -111,7 +111,20 @@ export function RetailerVentas() {
         )}
 
         {loading ? (
-          <p className="text-cosmos-muted">Cargando ventas…</p>
+          <div className="bg-cosmos-surface border border-cosmos-border rounded-2xl overflow-hidden">
+            <div className="border-b border-cosmos-border px-6 py-4 flex gap-4">
+              <div className="skeleton-shimmer rounded h-4 w-16 bg-cosmos-surface-elevated" aria-hidden />
+              <div className="skeleton-shimmer rounded h-4 w-24 bg-cosmos-surface-elevated" aria-hidden />
+              <div className="skeleton-shimmer rounded h-4 w-20 bg-cosmos-surface-elevated" aria-hidden />
+            </div>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center gap-4 px-6 py-4 border-b border-cosmos-border last:border-b-0">
+                <div className="skeleton-shimmer rounded h-4 w-24 bg-cosmos-surface-elevated" aria-hidden />
+                <div className="skeleton-shimmer rounded h-4 w-28 bg-cosmos-surface-elevated" aria-hidden />
+                <div className="skeleton-shimmer rounded h-4 w-20 bg-cosmos-surface-elevated" aria-hidden />
+              </div>
+            ))}
+          </div>
         ) : ventas.length === 0 ? (
           <div className="p-12 bg-cosmos-surface border border-cosmos-border rounded-2xl text-center">
             <Package size={48} className="text-cosmos-muted mx-auto mb-4" />

@@ -244,12 +244,12 @@ export function Shop() {
                 key={i}
                 className="bg-cosmos-surface border border-cosmos-border rounded-2xl overflow-hidden"
               >
-                <div className="aspect-square bg-cosmos-surface-elevated animate-pulse" />
+                <div className="aspect-square w-full skeleton-shimmer rounded-none bg-cosmos-surface-elevated" aria-hidden />
                 <div className="p-5 space-y-3">
-                  <div className="h-4 bg-cosmos-surface-elevated rounded animate-pulse w-full" />
-                  <div className="h-4 bg-cosmos-surface-elevated rounded animate-pulse w-3/4" />
-                  <div className="h-3 bg-cosmos-surface-elevated rounded animate-pulse w-1/4" />
-                  <div className="h-4 bg-cosmos-surface-elevated rounded animate-pulse w-1/3" />
+                  <div className="skeleton-shimmer h-4 rounded w-full bg-cosmos-surface-elevated" aria-hidden />
+                  <div className="skeleton-shimmer h-4 rounded w-3/4 bg-cosmos-surface-elevated" aria-hidden />
+                  <div className="skeleton-shimmer h-3 rounded w-1/4 bg-cosmos-surface-elevated" aria-hidden />
+                  <div className="skeleton-shimmer h-4 rounded w-1/3 bg-cosmos-surface-elevated" aria-hidden />
                 </div>
               </div>
             ))}
