@@ -68,12 +68,28 @@ export async function getProviderBySlug(slug: string): Promise<ProviderProfile |
   }
 }
 
+export type CreateProviderPayload = {
+  legalName: string;
+  taxId: string;
+  country: string;
+  requireStoreApproval?: boolean;
+};
+
 export type UpdateProviderPayload = {
   legalName?: string;
   taxId?: string;
   country?: string;
   requireStoreApproval?: boolean;
 };
+
+export async function createProvider(
+  payload: CreateProviderPayload
+): Promise<ProviderProfile> {
+  return apiRequest<ProviderProfile>("/providers", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
 
 export async function updateProvider(
   id: string,
