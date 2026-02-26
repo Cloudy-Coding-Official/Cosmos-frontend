@@ -154,7 +154,6 @@ export function ProtectedRoute({ allowedRoles, allowPreview }: ProtectedRoutePro
   const [expandModalOpen, setExpandModalOpen] = useState(false);
   const [expanding, setExpanding] = useState(false);
   const [expandError, setExpandError] = useState<string | null>(null);
-  const [checkingStaleAccess, setCheckingStaleAccess] = useState(false);
   const [hasRefreshedForRoleRoute, setHasRefreshedForRoleRoute] = useState(false);
 
   const requiredRole = allowedRoles != null && allowedRoles.length > 0 ? allowedRoles[0] : null;
@@ -179,11 +178,8 @@ export function ProtectedRoute({ allowedRoles, allowPreview }: ProtectedRoutePro
     }
     if (!user) return;
     if (hasRefreshedForRoleRoute) return;
-    queueMicrotask(() => {
-      setHasRefreshedForRoleRoute(true);
-      setCheckingStaleAccess(true);
-    });
-    refreshUser().finally(() => setCheckingStaleAccess(false));
+    queueMicrotask(() => setHasRefreshedForRoleRoute(true));
+    refreshUser();
   }, [isRetailerOrProveedorIndex, user, refreshUser, location.pathname, hasRefreshedForRoleRoute]);
 
   const openExpandModal = () => {
@@ -196,9 +192,7 @@ export function ProtectedRoute({ allowedRoles, allowPreview }: ProtectedRoutePro
     setExpandError(null);
   };
 
-  const mustWaitForRefresh =
-    isRetailerOrProveedorIndex && !!user && !hasRefreshedForRoleRoute;
-  if (loading || checkingStaleAccess || mustWaitForRefresh) {
+  if (loading) {
     return (
       <div className="min-h-[40vh] w-full max-w-[1200px] mx-auto px-6 py-10">
         <div className="skeleton-shimmer rounded-lg h-8 w-48 bg-cosmos-surface-elevated mb-6" aria-hidden />
