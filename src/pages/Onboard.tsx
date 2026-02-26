@@ -199,7 +199,7 @@ export function Onboard() {
           aria-hidden
         />
       )}
-      <div className="w-full max-w-[480px] mx-auto">
+      <div className="w-full max-w-[540px] mx-auto">
         <div className="mb-8">
           <h1 className="font-display text-[1.5rem] text-cosmos-text m-0 mb-1">Crear cuenta en Cosmos</h1>
           <p className="text-[0.9375rem] text-cosmos-muted m-0">Paso {step} de {totalSteps}</p>
