@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Users, Store, Package, ClipboardList, ChevronDown, ChevronUp } from "lucide-react";
+import { Users, Store, Package, ClipboardList, ChevronDown, ChevronUp, ClipboardCheck } from "lucide-react";
 import { useState, useEffect } from "react";
 import {
   getProviderRetailerStores,
@@ -31,18 +31,27 @@ export function ProveedoresRetailers() {
           <span className="text-cosmos-text">Retailers</span>
         </nav>
 
-        <div className="flex flex-wrap items-center gap-3 mb-8">
-          <div className="w-12 h-12 rounded-xl bg-cosmos-accent-soft flex items-center justify-center shrink-0">
-            <Users size={24} className="text-cosmos-accent" />
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-cosmos-accent-soft flex items-center justify-center shrink-0">
+              <Users size={24} className="text-cosmos-accent" />
+            </div>
+            <div>
+              <h1 className="font-display font-semibold text-cosmos-text text-2xl m-0 mb-1">
+                Tiendas con mis productos
+              </h1>
+              <p className="text-cosmos-muted text-sm m-0">
+                Retailers que añadieron tus productos a su tienda. Administrá los pedidos de cada uno.
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-display font-semibold text-cosmos-text text-2xl m-0 mb-1">
-              Tiendas con mis productos
-            </h1>
-            <p className="text-cosmos-muted text-sm m-0">
-              Retailers que añadieron tus productos a su tienda. Administrá los pedidos de cada uno.
-            </p>
-          </div>
+          <Link
+            to="/proveedores/pedidos"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-cosmos-accent-soft text-cosmos-accent border border-cosmos-accent/30 rounded-lg hover:bg-cosmos-accent/20 transition-colors"
+          >
+            <ClipboardCheck size={16} />
+            Ver todos los pedidos
+          </Link>
         </div>
 
         {error && (
