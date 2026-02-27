@@ -54,7 +54,9 @@ function MisCompras({ buyerProfileId }: { buyerProfileId: string | null }) {
     setLoading(true);
     setError(null);
     getOrdersByBuyer(buyerProfileId)
-      .then(setOrders)
+      .then((data) =>
+        setOrders([...data].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))
+      )
       .catch((err) => setError(getErrorMessage(err, "Error al cargar compras")))
       .finally(() => setLoading(false));
   }, [buyerProfileId]);

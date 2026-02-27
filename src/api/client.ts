@@ -51,7 +51,8 @@ export function setTokens(access: string, refresh: string) {
 
 let refreshPromise: Promise<string | null> | null = null;
 
-async function refreshAccessToken(): Promise<string | null> {
+/** Refreshes the access token using the refresh token. Exported for use before critical requests (e.g. after wallet popup). */
+export async function refreshAccessToken(): Promise<string | null> {
   const refresh = getStoredRefreshToken();
   if (!refresh) return null;
   if (refreshPromise) return refreshPromise;

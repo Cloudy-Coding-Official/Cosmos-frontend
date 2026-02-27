@@ -1,11 +1,14 @@
 import { Link, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Package, Truck, CheckCircle, ArrowLeft } from "lucide-react";
+import { Package, Truck, CheckCircle, ArrowLeft, Loader2 } from "lucide-react";
 import type { Order } from "../../data/orders";
 import { getOrder, ingresarCodigoComprador, marcarEnCamino } from "../../data/orders";
 import { getOrderById, orderStatusLabel, type OrderBackend, type OrderStatusBackend } from "../../api/orders";
 import { getProductById } from "../../data/products";
 import { ProductImage } from "../../components/ProductImage";
+import { getShipmentByOrder, buyerDeliveryResponse } from "../../api/shipments";
+import type { ShipmentDto } from "../../api/shipments";
+import { getErrorMessage } from "../../api/client";
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -24,6 +27,9 @@ export function PurchaseTracking() {
   const [enviado, setEnviado] = useState(false);
 
   const isApiOrderId = id && UUID_REGEX.test(id);
+  const [shipment, setShipment] = useState<ShipmentDto | null | undefined>(undefined);
+  const [deliveryActionLoading, setDeliveryActionLoading] = useState(false);
+  const [deliveryActionError, setDeliveryActionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -38,6 +44,22 @@ export function PurchaseTracking() {
       setLocalOrder(getOrder(id));
     }
   }, [id, isApiOrderId]);
+
+  useEffect(() => {
+    if (!apiOrder || !isApiOrderId) return;
+    const needShipment =
+      apiOrder.status === "SHIPPED" ||
+      apiOrder.status === "DELIVERED" ||
+      apiOrder.status === "RELEASED";
+    if (!needShipment) {
+      setShipment(null);
+      return;
+    }
+    setShipment(undefined);
+    getShipmentByOrder(apiOrder.id)
+      .then(setShipment)
+      .catch(() => setShipment(null));
+  }, [apiOrder?.id, apiOrder?.status, isApiOrderId]);
 
   const loading = isApiOrderId ? apiOrder === undefined : false;
   const notFound = isApiOrderId ? apiOrder === null : !localOrder;
@@ -85,7 +107,7 @@ export function PurchaseTracking() {
             Seguimiento de compra
           </h1>
           <p className="text-cosmos-muted text-sm m-0 mb-8">
-            Pedido #{apiOrder.id.slice(0, 8)} · {new Date(apiOrder.createdAt).toLocaleDateString("es-AR", { dateStyle: "medium", timeStyle: "short" })}
+            Pedido #{apiOrder.id.slice(0, 8)} · {new Date(apiOrder.createdAt).toLocaleString("es-AR", { dateStyle: "medium", timeStyle: "short" })}
           </p>
           <div className="mb-6 p-4 bg-cosmos-surface border border-cosmos-border rounded-xl">
             <span className="inline-block px-3 py-1 text-sm font-medium rounded-lg bg-cosmos-accent-soft text-cosmos-accent">
@@ -132,6 +154,83 @@ export function PurchaseTracking() {
               Total: {apiOrder.currency} {Number(apiOrder.totalAmount).toFixed(2)}
             </p>
           </div>
+
+          {/* Comprador: confirmar que me llegó el pedido (libera el escrow) */}
+          {shipment &&
+            shipment.buyerConfirmed == null &&
+            (apiOrder.status === "SHIPPED" || apiOrder.status === "DELIVERED") && (
+              <div className="mb-6 p-4 bg-cosmos-surface border border-cosmos-border rounded-xl">
+                <h3 className="font-semibold text-cosmos-text m-0 mb-2">
+                  ¿Te llegó el pedido?
+                </h3>
+                <p className="text-sm text-cosmos-muted m-0 mb-4">
+                  Al confirmar, se libera el pago al vendedor. Si no te llegó, podés reportarlo y se abre una disputa.
+                </p>
+                {deliveryActionError && (
+                  <p className="text-red-500 text-sm m-0 mb-3">{deliveryActionError}</p>
+                )}
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    disabled={deliveryActionLoading}
+                    onClick={async () => {
+                      setDeliveryActionLoading(true);
+                      setDeliveryActionError(null);
+                      try {
+                        await buyerDeliveryResponse(shipment.id, { received: true });
+                        const updated = await getOrderById(apiOrder.id);
+                        if (updated) setApiOrder(updated);
+                        setShipment(undefined);
+                      } catch (err) {
+                        setDeliveryActionError(getErrorMessage(err, "Error al confirmar"));
+                      } finally {
+                        setDeliveryActionLoading(false);
+                      }
+                    }}
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30 disabled:opacity-60"
+                  >
+                    {deliveryActionLoading ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <CheckCircle size={16} />
+                    )}
+                    Confirmar que me llegó
+                  </button>
+                  <button
+                    type="button"
+                    disabled={deliveryActionLoading}
+                    onClick={async () => {
+                      setDeliveryActionLoading(true);
+                      setDeliveryActionError(null);
+                      try {
+                        await buyerDeliveryResponse(shipment.id, {
+                          received: false,
+                          reason: "No recibí el pedido",
+                        });
+                        const updated = await getOrderById(apiOrder.id);
+                        if (updated) setApiOrder(updated);
+                        setShipment(undefined);
+                      } catch (err) {
+                        setDeliveryActionError(getErrorMessage(err, "Error al reportar"));
+                      } finally {
+                        setDeliveryActionLoading(false);
+                      }
+                    }}
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/30 disabled:opacity-60"
+                  >
+                    No me llegó (abrir disputa)
+                  </button>
+                </div>
+              </div>
+            )}
+
+          {shipment && shipment.buyerConfirmed === true && (
+            <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-2">
+              <CheckCircle size={20} className="text-emerald-500 shrink-0" />
+              <p className="text-sm text-cosmos-text m-0">Confirmaste la recepción. El pago fue liberado al vendedor.</p>
+            </div>
+          )}
+
           <Link to="/perfil" className="inline-flex items-center gap-2 text-cosmos-accent font-medium hover:underline">
             <ArrowLeft size={18} className="rotate-180" />
             Volver a mis compras

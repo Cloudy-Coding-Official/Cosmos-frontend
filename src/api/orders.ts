@@ -1,5 +1,52 @@
 import { apiRequest } from "./client";
 
+// ─── Escrow config (flujo SDK 100% frontend: deploy + fund en cliente) ───────
+
+export type EscrowConfig = {
+  engagementId: string;
+  title: string;
+  description: string;
+  amount: number;
+  platformFee: number;
+  milestones: { description: string; status: string; approved: boolean }[];
+  roles: {
+    approver: string;
+    serviceProvider: string;
+    platformAddress: string;
+    releaseSigner: string;
+    disputeResolver: string;
+    receiver: string;
+  };
+  trustline: { symbol: string; address: string };
+};
+
+export async function getOrderEscrowConfig(orderId: string): Promise<EscrowConfig> {
+  return apiRequest<EscrowConfig>(`/escrow/config-by-order/${encodeURIComponent(orderId)}`, {
+    method: "GET",
+  });
+}
+
+export async function registerEscrowDeployed(
+  orderId: string,
+  contractId: string
+): Promise<{ escrowId: string; contractId: string }> {
+  return apiRequest<{ escrowId: string; contractId: string }>(
+    `/escrow/by-order/${encodeURIComponent(orderId)}/deployed`,
+    {
+      method: "POST",
+      body: JSON.stringify({ contractId }),
+    }
+  );
+}
+
+export async function registerEscrowFunded(orderId: string): Promise<unknown> {
+  return apiRequest(`/escrow/by-order/${encodeURIComponent(orderId)}/funded`, {
+    method: "POST",
+  });
+}
+
+// ─── Orders ─────────────────────────────────────────────────────────────────
+
 export type ShippingInfoPayload = {
   recipientName?: string;
   email?: string;

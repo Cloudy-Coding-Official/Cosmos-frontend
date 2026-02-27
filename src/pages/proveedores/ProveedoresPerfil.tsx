@@ -25,11 +25,13 @@ export function ProveedoresPerfil() {
     taxId: string;
     country: string;
     requireStoreApproval?: boolean;
+    defaultEscrowFlow?: "FULL_HOLD" | "IMMEDIATE_PARTIAL";
   }>({
     legalName: "",
     taxId: "",
     country: user?.country && user.country !== "XX" ? user.country : "",
     requireStoreApproval: true,
+    defaultEscrowFlow: "FULL_HOLD",
   });
   const [loading, setLoading] = useState(!!providerId);
   const [saving, setSaving] = useState(false);
@@ -56,6 +58,7 @@ export function ProveedoresPerfil() {
             taxId: data.taxId,
             country: data.country,
             requireStoreApproval: data.requireStoreApproval ?? true,
+            defaultEscrowFlow: data.defaultEscrowFlow ?? "FULL_HOLD",
           });
         }
       })
@@ -83,6 +86,7 @@ export function ProveedoresPerfil() {
           taxId: (form.taxId ?? "").trim(),
           country: countryCode,
           requireStoreApproval: form.requireStoreApproval !== false,
+          defaultEscrowFlow: form.defaultEscrowFlow,
         };
         if (!payload.legalName || !payload.taxId) {
           setError("Razón social y CUIT son obligatorios.");
@@ -99,6 +103,7 @@ export function ProveedoresPerfil() {
           taxId: form.taxId?.trim(),
           country: countryCode,
           requireStoreApproval: form.requireStoreApproval,
+          defaultEscrowFlow: form.defaultEscrowFlow,
         });
         setProfile(updated);
         setSuccess(true);
@@ -224,6 +229,33 @@ export function ProveedoresPerfil() {
                 Requerir que las tiendas soliciten acceso para vender mis productos (recomendado).
               </label>
             </div>
+            {providerId && (
+              <div>
+                <label className="block text-sm font-medium text-cosmos-text mb-2">
+                  Modalidad de cobro
+                </label>
+                <select
+                  value={form.defaultEscrowFlow ?? "FULL_HOLD"}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      defaultEscrowFlow: e.target.value as "FULL_HOLD" | "IMMEDIATE_PARTIAL",
+                    }))
+                  }
+                  className={selectBase}
+                >
+                  <option value="FULL_HOLD">
+                    100% contra confirmación de entrega (comisión Cosmos 1%)
+                  </option>
+                  <option value="IMMEDIATE_PARTIAL">
+                    50% al comprar + 50% contra entrega (comisión Cosmos 2%)
+                  </option>
+                </select>
+                <p className="text-xs text-cosmos-muted mt-1">
+                  Define cómo querés recibir el pago en cada venta. Afecta la comisión que cobra Cosmos.
+                </p>
+              </div>
+            )}
           </div>
 
           {profile?.verified && (

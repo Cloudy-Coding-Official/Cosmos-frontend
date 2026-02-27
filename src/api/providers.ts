@@ -9,6 +9,8 @@ export type ProviderCatalogItem = {
   _count: { products: number };
 };
 
+export type EscrowFlowType = "FULL_HOLD" | "IMMEDIATE_PARTIAL";
+
 export type ProviderProfile = {
   id: string;
   legalName: string;
@@ -17,6 +19,7 @@ export type ProviderProfile = {
   country: string;
   verified: boolean;
   requireStoreApproval?: boolean;
+  defaultEscrowFlow?: EscrowFlowType;
   whitelistedStoreIds?: string[];
   createdAt: string;
   updatedAt: string;
@@ -73,6 +76,7 @@ export type CreateProviderPayload = {
   taxId: string;
   country: string;
   requireStoreApproval?: boolean;
+  defaultEscrowFlow?: EscrowFlowType;
 };
 
 export type UpdateProviderPayload = {
@@ -80,6 +84,7 @@ export type UpdateProviderPayload = {
   taxId?: string;
   country?: string;
   requireStoreApproval?: boolean;
+  defaultEscrowFlow?: EscrowFlowType;
 };
 
 export async function createProvider(
@@ -131,6 +136,35 @@ export async function getProviderStoreOrders(storeId: string): Promise<ProviderS
   return Array.isArray(data) ? data : [];
 }
 
+/** Crea o devuelve el shipment de un pedido (solo para el proveedor de ese pedido). */
+export async function providerEnsureShipment(orderId: string): Promise<{ id: string; [key: string]: unknown }> {
+  return apiRequest(`/providers/me/orders/${encodeURIComponent(orderId)}/ensure-shipment`, {
+    method: "POST",
+  });
+}
+
+/** Marca el envío como enviado (solo para el proveedor del pedido). */
+export async function providerMarkShipped(
+  shipmentId: string,
+  payload?: { carrier?: string; trackingNumber?: string; trackingUrl?: string; estimatedDelivery?: string; notes?: string }
+): Promise<{ id: string; [key: string]: unknown }> {
+  return apiRequest(`/providers/me/shipments/${encodeURIComponent(shipmentId)}/mark-shipped`, {
+    method: "POST",
+    body: JSON.stringify(payload ?? {}),
+  });
+}
+
+/** Marca el envío como recibido/entregado (solo para el proveedor del pedido). */
+export async function providerMarkDelivered(
+  shipmentId: string,
+  payload?: { notes?: string }
+): Promise<{ id: string; [key: string]: unknown }> {
+  return apiRequest(`/providers/me/shipments/${encodeURIComponent(shipmentId)}/mark-delivered`, {
+    method: "POST",
+    body: JSON.stringify(payload ?? {}),
+  });
+}
+
 export type ShippingInfo = {
   recipientName?: string;
   email?: string;
@@ -138,6 +172,13 @@ export type ShippingInfo = {
   city?: string;
   postalCode?: string;
   country?: string;
+};
+
+export type ProviderStoreOrderShipment = {
+  id: string;
+  sellerMarkedShipped: boolean;
+  sellerMarkedDelivered: boolean;
+  status: string;
 };
 
 export type ProviderStoreOrder = {
@@ -149,6 +190,8 @@ export type ProviderStoreOrder = {
   createdAt: string;
   shippingInfo?: ShippingInfo | null;
   store?: { id: string; name: string; slug: string };
+  escrow?: { id: string } | null;
+  shipment?: ProviderStoreOrderShipment | null;
   orderItems?: Array<{
     id: string;
     quantity: number;

@@ -1,11 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import { Shield, CreditCard, Truck, ChevronRight } from "lucide-react";
+import { Shield, CreditCard, Truck, ChevronRight, Wallet } from "lucide-react";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
+import { useStellarWallet } from "../../context/StellarWalletContext";
 import { createOrder } from "../../api/orders";
 import { getErrorMessage } from "../../api/client";
 import { ProductImage } from "../../components/ProductImage";
+import { CheckoutTrustlessPayment } from "../../components/CheckoutTrustlessPayment";
 
 const PASOS = [
   { id: 1, label: "Envío", icon: Truck },
@@ -16,8 +18,11 @@ const PASOS = [
 export function Checkout() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { address: stellarAddress, connect: connectStellar, isConnecting: stellarConnecting } = useStellarWallet();
   const { items, isValidating, refreshCart, subtotal, fee, total, clearCart } = useCart();
   const [paso, setPaso] = useState(1);
+  const [showTrustlessPayment, setShowTrustlessPayment] = useState(false);
+  const [orderIdToPay, setOrderIdToPay] = useState<string | null>(null);
   const [datos, setDatos] = useState({
     nombre: "",
     email: "",
@@ -117,6 +122,14 @@ export function Checkout() {
         });
         orderIds.push(order.id);
       }
+
+      if (datos.metodoPago === "cosmos-pay" && orderIds.length > 0) {
+        setOrderIdToPay(orderIds[0]);
+        setShowTrustlessPayment(true);
+        setEnviando(false);
+        return;
+      }
+
       clearCart();
       navigate("/perfil/compras/" + orderIds[0]);
     } catch (err) {
@@ -141,6 +154,22 @@ export function Checkout() {
           Checkout
         </h1>
 
+        {showTrustlessPayment && orderIdToPay && (
+          <CheckoutTrustlessPayment
+            orderId={orderIdToPay}
+            onSuccess={() => {
+              clearCart();
+              navigate("/perfil/compras/" + orderIdToPay);
+            }}
+            onBack={() => {
+              setShowTrustlessPayment(false);
+              setOrderIdToPay(null);
+            }}
+          />
+        )}
+
+        {!showTrustlessPayment && (
+        <>
         <div className="flex gap-4 mb-8">
           {PASOS.map((p) => {
             const Icon = p.icon;
@@ -260,9 +289,30 @@ export function Checkout() {
                       onChange={handleChange}
                       className="accent-cosmos-accent"
                     />
-                    <div>
-                      <p className="font-medium text-cosmos-text m-0">Cosmos Pay (USDT)</p>
-                      <p className="text-sm text-cosmos-muted m-0">Paga con USDT. On/Off ramp integrado.</p>
+                    <div className="flex-1">
+                      <p className="font-medium text-cosmos-text m-0">Cosmos Pay (Stellar / USDC)</p>
+                      <p className="text-sm text-cosmos-muted m-0">
+                        Pagá con tu wallet Stellar. Los fondos quedan en custodia hasta que confirmes la entrega.
+                      </p>
+                      {datos.metodoPago === "cosmos-pay" && (
+                        <div className="mt-3">
+                          {stellarAddress ? (
+                            <p className="text-sm text-cosmos-muted m-0">
+                              Wallet: <span className="font-mono text-cosmos-text">{stellarAddress.slice(0, 8)}…{stellarAddress.slice(-6)}</span>
+                            </p>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => connectStellar()}
+                              disabled={stellarConnecting}
+                              className="inline-flex items-center gap-2 mt-1 px-3 py-2 rounded-lg bg-cosmos-surface-elevated border border-cosmos-border text-cosmos-text hover:border-cosmos-accent text-sm font-medium"
+                            >
+                              <Wallet size={16} />
+                              {stellarConnecting ? "Conectando…" : "Conectar wallet Stellar"}
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </label>
                   <label className="flex items-center gap-4 p-4 border border-cosmos-border rounded-xl cursor-pointer hover:border-cosmos-accent/50 opacity-60">
@@ -331,6 +381,9 @@ export function Checkout() {
                   <span className="text-cosmos-muted">Servicio</span>
                   <span className="text-cosmos-text">{(items[0]?.currency ?? "USD")} {fee.toFixed(2)}</span>
                 </div>
+                <p className="text-xs text-cosmos-muted mt-2">
+                  Comisión Cosmos (1% o 2% según modalidad del proveedor) incluida en el flujo de pago.
+                </p>
               </div>
               <div className="flex justify-between font-semibold text-lg py-2 text-cosmos-text">
                 <span>Total</span>
@@ -375,6 +428,8 @@ export function Checkout() {
             </div>
           </aside>
         </div>
+        </>
+        )}
       </div>
     </div>
   );

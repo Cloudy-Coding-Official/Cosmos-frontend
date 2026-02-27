@@ -1,9 +1,14 @@
 import { Link, useParams, Navigate } from "react-router-dom";
-import { Store, ArrowLeft, Package } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Store, ArrowLeft, Package, Truck, CheckCircle, Loader2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 import { getProviderStoreOrders, type ProviderStoreOrder } from "../../api/providers";
 import { orderStatusLabel } from "../../api/orders";
 import { getErrorMessage } from "../../api/client";
+import {
+  providerEnsureShipment,
+  providerMarkShipped,
+  providerMarkDelivered,
+} from "../../api/providers";
 
 function toNum(v: string | number | null | undefined): number {
   if (v == null) return 0;
@@ -18,9 +23,26 @@ export function ProveedoresStoreOrders() {
   const [storeName, setStoreName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [actionOrderId, setActionOrderId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const refetch = useCallback(() => {
+    if (!storeId) return;
+    getProviderStoreOrders(storeId)
+      .then((list) => {
+        setOrders(list);
+        const first = list[0];
+        setStoreName(first?.store?.name ?? "Tienda");
+      })
+      .catch((err) => {
+        setError(getErrorMessage(err, "Error al cargar pedidos"));
+        setOrders([]);
+      });
+  }, [storeId]);
 
   useEffect(() => {
     if (!storeId) return;
+    setLoading(true);
     getProviderStoreOrders(storeId)
       .then((list) => {
         setOrders(list);
@@ -133,7 +155,7 @@ export function ProveedoresStoreOrders() {
                       Pedido #{order.id.slice(0, 8)}
                     </p>
                     <p className="text-sm text-cosmos-muted m-0">
-                      {new Date(order.createdAt).toLocaleDateString("es-AR", {
+                      {new Date(order.createdAt).toLocaleString("es-AR", {
                         dateStyle: "medium",
                         timeStyle: "short",
                       })}
@@ -197,6 +219,93 @@ export function ProveedoresStoreOrders() {
                     </div>
                   </div>
                 )}
+
+                {/* Acciones del proveedor: marcar enviado / marcar recibido */}
+                {order.status === "FUNDED" || order.status === "SHIPPED" || order.status === "DELIVERED" ? (
+                  <div className="mt-3 pt-3 border-t border-cosmos-border flex flex-wrap items-center gap-2">
+                    {actionError && actionOrderId === order.id && (
+                      <p className="text-red-500 text-sm w-full m-0">{actionError}</p>
+                    )}
+                    {order.status === "FUNDED" && !order.shipment && order.escrow?.id ? (
+                      <button
+                        type="button"
+                        disabled={actionOrderId === order.id}
+                        onClick={async () => {
+                          setActionOrderId(order.id);
+                          setActionError(null);
+                          try {
+                            await providerEnsureShipment(order.id);
+                            refetch();
+                          } catch (err) {
+                            setActionError(getErrorMessage(err, "Error al preparar envío"));
+                          } finally {
+                            setActionOrderId(null);
+                          }
+                        }}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg bg-cosmos-surface-elevated border border-cosmos-border text-cosmos-text hover:bg-cosmos-accent-soft hover:border-cosmos-accent/40 disabled:opacity-60"
+                      >
+                        {actionOrderId === order.id ? (
+                          <Loader2 size={14} className="animate-spin" />
+                        ) : (
+                          <Truck size={14} />
+                        )}
+                        Preparar envío
+                      </button>
+                    ) : null}
+                    {order.shipment && !order.shipment.sellerMarkedShipped ? (
+                      <button
+                        type="button"
+                        disabled={actionOrderId === order.id}
+                        onClick={async () => {
+                          setActionOrderId(order.id);
+                          setActionError(null);
+                          try {
+                            await providerMarkShipped(order.shipment!.id);
+                            refetch();
+                          } catch (err) {
+                            setActionError(getErrorMessage(err, "Error al marcar como enviado"));
+                          } finally {
+                            setActionOrderId(null);
+                          }
+                        }}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 disabled:opacity-60"
+                      >
+                        {actionOrderId === order.id ? (
+                          <Loader2 size={14} className="animate-spin" />
+                        ) : (
+                          <Truck size={14} />
+                        )}
+                        Marcar como enviado
+                      </button>
+                    ) : null}
+                    {order.shipment?.sellerMarkedShipped && !order.shipment.sellerMarkedDelivered ? (
+                      <button
+                        type="button"
+                        disabled={actionOrderId === order.id}
+                        onClick={async () => {
+                          setActionOrderId(order.id);
+                          setActionError(null);
+                          try {
+                            await providerMarkDelivered(order.shipment!.id);
+                            refetch();
+                          } catch (err) {
+                            setActionError(getErrorMessage(err, "Error al marcar como recibido"));
+                          } finally {
+                            setActionOrderId(null);
+                          }
+                        }}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 disabled:opacity-60"
+                      >
+                        {actionOrderId === order.id ? (
+                          <Loader2 size={14} className="animate-spin" />
+                        ) : (
+                          <CheckCircle size={14} />
+                        )}
+                        Marcar como recibido
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
             ))}
           </div>
