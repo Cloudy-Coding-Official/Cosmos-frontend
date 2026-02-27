@@ -10,6 +10,27 @@ import { getShipmentByOrder, buyerDeliveryResponse } from "../../api/shipments";
 import type { ShipmentDto } from "../../api/shipments";
 import { getErrorMessage } from "../../api/client";
 
+function purchaseStatusMessage(status: OrderStatusBackend): { message: string; stage: "preparando" | "en_camino" | "entregado" | "completado" | "otro" } {
+  switch (status) {
+    case "PENDING":
+    case "ESCROW_DEPLOYED":
+    case "FUNDED":
+      return { message: "El proveedor está preparando tu compra.", stage: "preparando" };
+    case "SHIPPED":
+      return { message: "Tu pedido está en camino.", stage: "en_camino" };
+    case "DELIVERED":
+      return { message: "Tu pedido fue entregado. Confirmá cuando lo recibas para liberar el pago al vendedor.", stage: "entregado" };
+    case "RELEASED":
+      return { message: "¡Listo! Confirmaste la recepción y el pago fue liberado al vendedor.", stage: "completado" };
+    case "CANCELLED":
+      return { message: "Este pedido fue cancelado.", stage: "otro" };
+    case "DISPUTED":
+      return { message: "Este pedido está en disputa. Te contactaremos si hace falta.", stage: "otro" };
+    default:
+      return { message: orderStatusLabel(status), stage: "otro" };
+  }
+}
+
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const PASOS_LOCAL: { id: "comprado" | "en_camino" | "confirmado"; label: string; icon: typeof Package }[] = [
@@ -106,14 +127,60 @@ export function PurchaseTracking() {
           <h1 className="font-display font-semibold text-cosmos-text text-2xl m-0 mb-1">
             Seguimiento de compra
           </h1>
-          <p className="text-cosmos-muted text-sm m-0 mb-8">
+          <p className="text-cosmos-muted text-sm m-0 mb-6">
             Pedido #{apiOrder.id.slice(0, 8)} · {new Date(apiOrder.createdAt).toLocaleString("es-AR", { dateStyle: "medium", timeStyle: "short" })}
           </p>
-          <div className="mb-6 p-4 bg-cosmos-surface border border-cosmos-border rounded-xl">
-            <span className="inline-block px-3 py-1 text-sm font-medium rounded-lg bg-cosmos-accent-soft text-cosmos-accent">
-              {orderStatusLabel(apiOrder.status as OrderStatusBackend)}
-            </span>
-          </div>
+
+          {(() => {
+            const { message, stage } = purchaseStatusMessage(apiOrder.status as OrderStatusBackend);
+            const steps: { id: "preparando" | "en_camino" | "entregado"; label: string; icon: typeof Package }[] = [
+              { id: "preparando", label: "Preparando", icon: Package },
+              { id: "en_camino", label: "En camino", icon: Truck },
+              { id: "entregado", label: "Entregado", icon: CheckCircle },
+            ];
+            const stageOrder = ["preparando", "en_camino", "entregado", "completado"] as const;
+            type StageOrder = (typeof stageOrder)[number];
+            const currentIndex = stage === "otro" ? -1 : stageOrder.indexOf(stage as StageOrder);
+            return (
+              <>
+                <div className="mb-6 p-5 bg-cosmos-surface border border-cosmos-border rounded-2xl flex items-start gap-4">
+                  {stage === "preparando" && <Package size={28} className="text-cosmos-accent shrink-0 mt-0.5" />}
+                  {stage === "en_camino" && <Truck size={28} className="text-cosmos-accent shrink-0 mt-0.5" />}
+                  {(stage === "entregado" || stage === "completado") && <CheckCircle size={28} className="text-emerald-400 shrink-0 mt-0.5" />}
+                  {stage === "otro" && <Package size={28} className="text-cosmos-muted shrink-0 mt-0.5" />}
+                  <div>
+                    <p className="font-semibold text-cosmos-text m-0 mb-0.5">{message}</p>
+                    <p className="text-sm text-cosmos-muted m-0">Estado: {orderStatusLabel(apiOrder.status as OrderStatusBackend)}</p>
+                  </div>
+                </div>
+                {currentIndex >= 0 && (
+                  <div className="mb-8 flex items-center gap-0">
+                    {steps.map((s, i) => {
+                      const Icon = s.icon;
+                      const done = stageOrder.indexOf(stage as StageOrder) > i || stage === "completado";
+                      const active = stage === "completado" ? false : stageOrder.indexOf(stage as StageOrder) === i;
+                      return (
+                        <div key={s.id} className="flex flex-1 items-center min-w-0">
+                          <div className="flex flex-1 flex-col items-center">
+                            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${done ? "bg-emerald-500/20 text-emerald-400" : active ? "bg-cosmos-accent text-white" : "bg-cosmos-surface-elevated text-cosmos-muted"}`}>
+                              {done ? <CheckCircle size={20} /> : <Icon size={20} />}
+                            </div>
+                            <span className={`mt-2 text-center text-xs font-medium ${done ? "text-emerald-400/90" : active ? "text-cosmos-text" : "text-cosmos-muted"}`}>{s.label}</span>
+                          </div>
+                          {i < steps.length - 1 && (
+                            <div className="w-8 shrink-0 flex items-center justify-center">
+                              <div className={`h-0.5 w-4 rounded-full ${done ? "bg-emerald-500/40" : "bg-cosmos-border"}`} />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            );
+          })()}
+
           <div className="mb-8 p-6 bg-cosmos-surface border border-cosmos-border rounded-2xl">
             <h3 className="font-semibold text-cosmos-text m-0 mb-4">Detalles</h3>
             {apiOrder.shippingInfo && typeof apiOrder.shippingInfo === "object" && (
