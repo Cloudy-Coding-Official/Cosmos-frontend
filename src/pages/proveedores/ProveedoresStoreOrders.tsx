@@ -156,8 +156,11 @@ export function ProveedoresStoreOrders() {
                     </p>
                     <p className="text-sm text-cosmos-muted m-0">
                       {new Date(order.createdAt).toLocaleString("es-AR", {
-                        dateStyle: "medium",
-                        timeStyle: "short",
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
                       })}
                     </p>
                   </div>
