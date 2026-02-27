@@ -1,7 +1,13 @@
 import { Link } from "react-router-dom";
-import { Package, Users, TrendingUp, User, ArrowRight, ClipboardCheck, ShieldCheck } from "lucide-react";
+import { Package, Users, TrendingUp, User, ArrowRight, ClipboardCheck, ShieldCheck, ClipboardList } from "lucide-react";
 
 const SECTIONS = [
+  {
+    to: "/proveedores/pedidos",
+    icon: ClipboardList,
+    title: "Pedidos",
+    desc: "Ver y gestionar todos los pedidos de tus tiendas en un solo lugar",
+  },
   {
     to: "/proveedores/productos",
     icon: Package,
