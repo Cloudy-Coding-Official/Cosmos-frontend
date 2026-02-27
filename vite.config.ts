@@ -13,4 +13,7 @@ export default defineConfig({
       ),
     },
   },
+  preview: {
+    allowedHosts: ["cloudycoding.com", "cosmos.cloudycoding.com"]
+  }
 })
