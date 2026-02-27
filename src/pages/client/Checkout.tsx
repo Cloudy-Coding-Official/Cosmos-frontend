@@ -19,7 +19,7 @@ export function Checkout() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { address: stellarAddress, connect: connectStellar, isConnecting: stellarConnecting } = useStellarWallet();
-  const { items, isValidating, refreshCart, subtotal, fee, total, clearCart } = useCart();
+  const { items, isValidating, refreshCart, subtotal, clearCart } = useCart();
   const [paso, setPaso] = useState(1);
   const [showTrustlessPayment, setShowTrustlessPayment] = useState(false);
   const [orderIdToPay, setOrderIdToPay] = useState<string | null>(null);
@@ -131,7 +131,7 @@ export function Checkout() {
       }
 
       clearCart();
-      navigate("/perfil/compras/" + orderIds[0]);
+      navigate(`/perfil/compras/${orderIds[0]}`, { replace: true });
     } catch (err) {
       setErrorOrden(getErrorMessage(err, "Error al crear el pedido. Intentá de nuevo."));
     } finally {
@@ -154,12 +154,13 @@ export function Checkout() {
           Checkout
         </h1>
 
+        {/* Modal Cosmos Pay: overlay sobre el checkout (frame centrado) */}
         {showTrustlessPayment && orderIdToPay && (
           <CheckoutTrustlessPayment
             orderId={orderIdToPay}
             onSuccess={() => {
               clearCart();
-              navigate("/perfil/compras/" + orderIdToPay);
+              navigate(`/perfil/compras/${orderIdToPay}`, { replace: true });
             }}
             onBack={() => {
               setShowTrustlessPayment(false);
@@ -168,7 +169,7 @@ export function Checkout() {
           />
         )}
 
-        {!showTrustlessPayment && (
+        <div className={showTrustlessPayment ? "pointer-events-none select-none opacity-40" : undefined}>
         <>
         <div className="flex gap-4 mb-8">
           {PASOS.map((p) => {
@@ -377,17 +378,10 @@ export function Checkout() {
                   <span className="text-cosmos-muted">Subtotal</span>
                   <span className="text-cosmos-text">{(items[0]?.currency ?? "USD")} {subtotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-cosmos-muted">Servicio</span>
-                  <span className="text-cosmos-text">{(items[0]?.currency ?? "USD")} {fee.toFixed(2)}</span>
-                </div>
-                <p className="text-xs text-cosmos-muted mt-2">
-                  Comisión Cosmos (1% o 2% según modalidad del proveedor) incluida en el flujo de pago.
-                </p>
               </div>
               <div className="flex justify-between font-semibold text-lg py-2 text-cosmos-text">
                 <span>Total</span>
-                <span>{(items[0]?.currency ?? "USD")} {total.toFixed(2)}</span>
+                <span>{(items[0]?.currency ?? "USD")} {subtotal.toFixed(2)}</span>
               </div>
 
               {errorOrden && (
@@ -429,7 +423,7 @@ export function Checkout() {
           </aside>
         </div>
         </>
-        )}
+        </div>
       </div>
     </div>
   );
