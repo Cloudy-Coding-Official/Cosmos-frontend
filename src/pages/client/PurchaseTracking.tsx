@@ -128,7 +128,7 @@ export function PurchaseTracking() {
             Seguimiento de compra
           </h1>
           <p className="text-cosmos-muted text-sm m-0 mb-6">
-            Pedido #{apiOrder.id.slice(0, 8)} · {new Date(apiOrder.createdAt).toLocaleString("es-AR", { dateStyle: "medium", timeStyle: "short" })}
+            Pedido #{apiOrder.id.slice(0, 8)} · {new Date(apiOrder.createdAt).toLocaleString("es-AR", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
           </p>
 
           {(() => {
