@@ -55,7 +55,6 @@ export function PurchaseTracking() {
   useEffect(() => {
     if (!id) return;
     if (isApiOrderId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLocalOrder(undefined);
       getOrderById(id)
         .then(setApiOrder)
@@ -80,6 +79,7 @@ export function PurchaseTracking() {
     getShipmentByOrder(apiOrder.id)
       .then(setShipment)
       .catch(() => setShipment(null));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiOrder?.id, apiOrder?.status, isApiOrderId]);
 
   const loading = isApiOrderId ? apiOrder === undefined : false;
