@@ -50,7 +50,7 @@ export function Product() {
   }, [fetchKey, productSlug, storeSlug]);
 
   const specs = product?.specs?.length ? product.specs : defaultSpecs;
-  const total = product ? (product.price * quantity + 0.1) * 1.01 : 0;
+  const total = product ? product.price * quantity : 0;
   const sellerStoreSlug = storeSlug ?? product?.sellerStoreSlug;
   const sellerStoreName = product?.sellerStoreName;
   const providerId = product?.providerId;
