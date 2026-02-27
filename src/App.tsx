@@ -34,6 +34,7 @@ import { ProveedoresRetailers } from "./pages/proveedores/ProveedoresRetailers";
 import { ProveedoresSolicitudes } from "./pages/proveedores/ProveedoresSolicitudes";
 import { ProveedoresTiendasAutorizadas } from "./pages/proveedores/ProveedoresTiendasAutorizadas";
 import { ProveedoresStoreOrders } from "./pages/proveedores/ProveedoresStoreOrders";
+import { ProveedoresPedidos } from "./pages/proveedores/ProveedoresPedidos";
 import { ProveedoresVentas } from "./pages/proveedores/ProveedoresVentas";
 import { Vender } from "./pages/Vender";
 import { VenderSinStock } from "./pages/VenderSinStock";
@@ -76,6 +77,7 @@ export default function App() {
               <Route path="perfil" element={<ProveedoresPerfil />} />
               <Route path="solicitudes" element={<ProveedoresSolicitudes />} />
               <Route path="tiendas-autorizadas" element={<ProveedoresTiendasAutorizadas />} />
+              <Route path="pedidos" element={<ProveedoresPedidos />} />
               <Route path="retailers" element={<ProveedoresRetailers />} />
               <Route path="retailers/:storeId" element={<ProveedoresStoreOrders />} />
               <Route path="ventas" element={<ProveedoresVentas />} />
