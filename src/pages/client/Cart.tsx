@@ -12,7 +12,7 @@ function productLink(item: { productId: string; productSlug?: string; storeSlug?
 }
 
 export function Cart() {
-  const { items, isValidating, refreshCart, removeItem, updateQuantity, subtotal, fee, total, itemCount } = useCart();
+  const { items, isValidating, refreshCart, removeItem, updateQuantity, subtotal, itemCount } = useCart();
   const currency = items[0]?.currency ?? "USD";
   const hasRefreshed = useRef(false);
 
@@ -149,14 +149,10 @@ export function Cart() {
                   <span className="text-cosmos-muted">Subtotal</span>
                   <span className="text-cosmos-text">{currency} {subtotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-sm py-2">
-                  <span className="text-cosmos-muted">Servicio</span>
-                  <span className="text-cosmos-text">{currency} {fee.toFixed(2)}</span>
-                </div>
                 <div className="h-px bg-cosmos-border my-2" />
                 <div className="flex justify-between font-semibold py-2 text-lg text-cosmos-text">
                   <span>Total</span>
-                  <span>{currency} {total.toFixed(2)}</span>
+                  <span>{currency} {subtotal.toFixed(2)}</span>
                 </div>
               </div>
               <Link
