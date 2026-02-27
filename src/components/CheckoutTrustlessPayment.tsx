@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { Wallet, Loader2, CheckCircle, ArrowRight } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Wallet, Loader2, CheckCircle, ArrowRight, X, Shield } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useStellarWallet } from "../context/StellarWalletContext";
 import {
   useInitializeEscrow,
@@ -11,7 +12,6 @@ import {
   getOrderEscrowConfig,
   registerEscrowDeployed,
   registerEscrowFunded,
-  type EscrowConfig,
 } from "../api/orders";
 import { getErrorMessage, refreshAccessToken } from "../api/client";
 
@@ -66,9 +66,30 @@ function validateFundPayload(p: { contractId: string; amount: number; signer: st
   return null;
 }
 
-type Step = "connect" | "deploy" | "fund" | "done" | "error";
+function toFriendlyErrorMessage(raw: string): string {
+  if (raw.includes("sesión expiró")) return raw;
+  if (/issuer cannot be null|trustline|STELLAR_USDC|platform.*address/i.test(raw)) {
+    return "No pudimos completar el pago en este momento. Por favor intentá de nuevo más tarde o contactá soporte.";
+  }
+  if (/trustline|cannot hold|insufficient|balance|op_status_bad_auth/i.test(raw)) {
+    return "Revisá que en tu billetera tengas el monto en USDC y que hayas aceptado el activo USDC. Luego intentá de nuevo.";
+  }
+  if (/no se recibió la transacción|no se pudo firmar/i.test(raw)) {
+    return "Tu billetera no pudo completar la operación. Asegurate de aprobar las solicitudes que te aparezcan e intentá de nuevo.";
+  }
+  if (/API key|VITE_TRUSTLESS|configurá.*\.env/i.test(raw)) {
+    return "El pago no está disponible en este momento. Por favor intentá más tarde.";
+  }
+  if (raw.length > 200 || /payload|contractId|XDR|signer|roles\./i.test(raw)) {
+    return "Ocurrió un error al procesar el pago. Intentá de nuevo o contactá soporte si el problema sigue.";
+  }
+  return raw;
+}
 
-export function   CheckoutTrustlessPayment({
+type Step = "connect" | "deploy" | "done" | "error";
+
+
+export function CheckoutTrustlessPayment({
   orderId,
   onSuccess,
   onBack,
@@ -82,14 +103,26 @@ export function   CheckoutTrustlessPayment({
   const { sendTransaction } = useSendTransaction();
   const { fundEscrow } = useFundEscrow();
   const [step, setStep] = useState<Step>("connect");
-  const [config, setConfig] = useState<EscrowConfig | null>(null);
-  const [contractId, setContractId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (address && step === "connect") setStep("deploy");
   }, [address, step]);
+
+  const handleClose = useCallback(() => {
+    if (loading) return;
+    onBack();
+  }, [loading, onBack]);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") handleClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [handleClose]);
 
   const handleConnect = async () => {
     setError(null);
@@ -97,7 +130,7 @@ export function   CheckoutTrustlessPayment({
       await connect();
       setStep("deploy");
     } catch (err) {
-      setError(getErrorMessage(err, "No se pudo conectar la wallet"));
+      setError(getErrorMessage(err, "No pudimos conectar tu billetera. Revisá que esté desbloqueada e intentá de nuevo."));
     }
   };
 
@@ -105,16 +138,15 @@ export function   CheckoutTrustlessPayment({
     if (!address) return;
     const apiKey = import.meta.env.VITE_TRUSTLESSWORK_API_KEY?.trim();
     if (!apiKey) {
-      setError("Falta la API key de Trustless. Configurá VITE_TRUSTLESSWORK_API_KEY en el .env del frontend.");
+      setError("El pago no está disponible en este momento. Por favor intentá más tarde.");
       return;
     }
     setError(null);
     setLoading(true);
+    setLoadingMessage("Preparando tu pago seguro…");
     try {
+      setLoadingMessage("Un momento…");
       const escrowConfig = await getOrderEscrowConfig(orderId);
-      setConfig(escrowConfig);
-      // Usar los roles del backend tal cual: approver = plataforma para que al confirmar
-      // recepción el backend pueda firmar approve-milestone y release-funds.
       const rolesForApi = {
         approver: escrowConfig.roles.approver,
         serviceProvider: escrowConfig.roles.serviceProvider,
@@ -153,6 +185,7 @@ export function   CheckoutTrustlessPayment({
           milestonesCount: (payload.milestones || []).length,
         });
       }
+      setLoadingMessage("Abrí tu billetera y confirmá la operación");
       const deployResponse = await deployEscrow(payload, "single-release");
       const { unsignedTransaction } = deployResponse;
       if (IS_DEV) {
@@ -168,6 +201,7 @@ export function   CheckoutTrustlessPayment({
         networkPassphrase: STELLAR_TESTNET_PASSPHRASE,
       });
       if (!signedXdr) throw new Error("No se pudo firmar la transacción");
+      setLoadingMessage("Procesando…");
       const response = await sendTransaction(signedXdr);
       const status = (response as { status?: string }).status;
       if (status === "FAILED") {
@@ -176,185 +210,287 @@ export function   CheckoutTrustlessPayment({
       }
       const contractIdFromResponse = (response as { contractId?: string }).contractId;
       if (!contractIdFromResponse) throw new Error("No se recibió el ID del contrato");
-      setContractId(contractIdFromResponse);
+      setLoadingMessage("Un momento…");
       await registerEscrowDeployed(orderId, contractIdFromResponse);
-      setStep("fund");
+
+      // Paso 2 en el mismo flujo: fondear (sin otro clic; el usuario firma 2.ª vez en la wallet)
+      const amountForFund = amountForApi;
+      const fundPayload = { contractId: contractIdFromResponse, amount: amountForFund, signer: address };
+      const fundValidationError = validateFundPayload(fundPayload);
+      if (fundValidationError) throw new Error(fundValidationError);
+      if (IS_DEV) {
+        console.log("[Trustless] Fund payload:", { contractId: contractIdFromResponse, amount: amountForFund, signer: address?.slice(0, 8) + "…" });
+      }
+      setLoadingMessage("Confirmá el pago en tu billetera");
+      const fundResponse = await fundEscrow(fundPayload, "single-release");
+      const fundUnsigned = fundResponse.unsignedTransaction;
+      if (!fundUnsigned) {
+        throw new Error("No se recibió la transacción para fondear. Revisá la consola (F12) para más detalle.");
+      }
+      const fundSignedXdr = await signTransaction(fundUnsigned, {
+        networkPassphrase: STELLAR_TESTNET_PASSPHRASE,
+      });
+      if (!fundSignedXdr) throw new Error("No se pudo firmar la transacción de pago");
+      setLoadingMessage("Procesando el pago…");
+      const fundTxResponse = await sendTransaction(fundSignedXdr);
+      const fundStatus = (fundTxResponse as { status?: string }).status;
+      if (fundStatus === "FAILED") {
+        const msg = (fundTxResponse as { message?: string }).message;
+        throw new Error(msg ?? "Error al fondear el escrow");
+      }
+      setLoadingMessage("Casi listo…");
+      await refreshAccessToken();
+      await registerEscrowFunded(orderId);
+      setStep("done");
+      onSuccess();
     } catch (err) {
       const res = (err as { response?: { status?: number; data?: unknown } })?.response;
       const axiosData = res?.data;
       if (IS_DEV && res?.status === 400 && axiosData != null) {
         console.error("[Trustless] 400 response body:", axiosData);
       }
-      let apiMsg: string | null = null;
-      if (axiosData != null && typeof axiosData === "object") {
+      let message: string;
+      const errStatus = (err as { status?: number })?.status;
+      if (errStatus === 401) {
+        message = "Tu sesión expiró. Volvé a iniciar sesión y, si ya enviaste el pago, el pedido debería actualizarse al refrescar la página.";
+      } else if (axiosData != null && typeof axiosData === "object") {
         const d = axiosData as Record<string, unknown>;
-        if (typeof d.message === "string") apiMsg = d.message;
-        else if (Array.isArray(d.message)) apiMsg = d.message.map(String).join(". ");
-        else if (Array.isArray(d.errors)) apiMsg = (d.errors as unknown[]).map((e: unknown) => typeof e === "object" && e != null && "message" in e ? String((e as { message: unknown }).message) : String(e)).join(". ");
+        if (typeof d.message === "string") message = d.message;
+        else if (Array.isArray(d.message)) message = d.message.map(String).join(". ");
+        else if (Array.isArray(d.errors)) message = (d.errors as unknown[]).map((e: unknown) => typeof e === "object" && e != null && "message" in e ? String((e as { message: unknown }).message) : String(e)).join(". ");
+        else message = getErrorMessage(err, "Error al procesar el pago");
+      } else {
+        message = getErrorMessage(err, "Error al procesar el pago");
       }
-      let message = apiMsg && apiMsg.length > 0 ? apiMsg : getErrorMessage(err, "Error al desplegar el escrow");
-      if (message.toLowerCase().includes("issuer cannot be null")) {
-        message += " Revisá: (1) VITE_TRUSTLESSWORK_API_KEY en .env del frontend, (2) STELLAR_USDC_TRUSTLINE_ADDRESS en el backend.";
-      }
+      message = toFriendlyErrorMessage(message);
       setError(message);
       setStep("error");
     } finally {
       setLoading(false);
+      setLoadingMessage("");
     }
   };
 
-  const handleFund = async () => {
-    if (!address || !contractId || !config) return;
-    setError(null);
-    setLoading(true);
-    try {
-      const amountForFund = Number(config.amount);
-      const fundPayload = { contractId, amount: amountForFund, signer: address };
-      const validationError = validateFundPayload(fundPayload);
-      if (validationError) throw new Error(validationError);
-      if (IS_DEV) {
-        console.log("[Trustless] Fund payload:", { contractId, amount: amountForFund, signer: address?.slice(0, 8) + "…" });
-      }
-      const fundResponse = await fundEscrow(fundPayload, "single-release");
-      const { unsignedTransaction } = fundResponse;
-      if (!unsignedTransaction) {
-        throw new Error("No se recibió la transacción para fondear. Revisá la consola (F12) para más detalle.");
-      }
-      const signedXdr = await signTransaction(unsignedTransaction, {
-        networkPassphrase: STELLAR_TESTNET_PASSPHRASE,
-      });
-      if (!signedXdr) throw new Error("No se pudo firmar la transacción");
-      const response = await sendTransaction(signedXdr);
-      const status = (response as { status?: string }).status;
-      if (status === "FAILED") {
-        const msg = (response as { message?: string }).message;
-        throw new Error(msg ?? "Error al fondear el escrow");
-      }
-      // Refrescar token por si expiró mientras la wallet estaba abierta
-      await refreshAccessToken();
-      await registerEscrowFunded(orderId);
-      setStep("done");
-      onSuccess();
-    } catch (err) {
-      const errStatus = (err as { status?: number })?.status;
-      let msg = getErrorMessage(err, "Error al fondear el escrow");
-      if (errStatus === 401) {
-        msg = "Tu sesión expiró. Volvé a iniciar sesión y, si ya enviaste el pago, el pedido debería actualizarse al refrescar la página.";
-      } else {
-        const hint =
-          /trustline|cannot hold|insufficient|balance/i.test(msg) || msg.includes("op_status_bad_auth")
-            ? " Asegurate de tener la trustline de USDC (testnet) en tu wallet y saldo suficiente."
-            : "";
-        msg = msg + hint;
-      }
-      setError(msg);
-      setStep("error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (step === "done") {
-    return (
-      <div className="p-6 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-4">
-        <CheckCircle size={32} className="text-emerald-400 shrink-0" />
-        <div>
-          <p className="font-semibold text-cosmos-text m-0">Pago completado</p>
-          <p className="text-sm text-cosmos-muted m-0">Redirigiendo a tu pedido…</p>
-        </div>
-      </div>
-    );
-  }
+  // Fase fund = ya pasamos deploy y estamos en el pago (loading) o terminamos
+  const isFundPhase = step === "done" || (loading && /Confirmá el pago|Procesando el pago|Casi listo/.test(loadingMessage));
+  const step3Done = isFundPhase;
+  const step4Done = step === "done";
+  const currentStepIndex = step4Done ? 3 : step3Done ? 3 : 2;
+  const stepsForStepper = [
+    { key: "data", label: "Tus datos", done: true },
+    { key: "order", label: "Tu órden", done: true },
+    { key: "contract", label: "Contrato", done: step3Done },
+    { key: "fund", label: "Pago", done: step4Done },
+  ];
 
   return (
-    <div className="p-6 bg-cosmos-surface border border-cosmos-border rounded-xl space-y-4">
-      <h2 className="font-semibold text-cosmos-text text-lg m-0">Pago con Trustless (Stellar)</h2>
-      <p className="text-sm text-cosmos-muted">
-        Tus fondos quedan en depósito hasta que confirmes la recepción. El proveedor recibe el pago cuando marques el pedido como recibido.
-      </p>
-      {error && (
-        <div className="px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-sm text-red-400">
-          {error}
-        </div>
-      )}
-      {step === "connect" && (
-        <div className="space-y-3">
-          {!address ? (
+    <AnimatePresence>
+      <motion.div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        onClick={handleClose}
+        role="dialog"
+        aria-modal="true" 
+        aria-labelledby="cosmos-pay-title"
+      >
+        <motion.div
+          className="w-full max-w-md rounded-2xl bg-cosmos-surface border border-cosmos-border shadow-2xl overflow-hidden"
+          initial={{ opacity: 0, scale: 0.96, y: 8 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.98, y: 4 }}
+          transition={{ type: "spring", damping: 28, stiffness: 320 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-cosmos-border bg-cosmos-surface-elevated/80">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-cosmos-accent/20 flex items-center justify-center">
+                <Shield className="w-5 h-5 text-cosmos-accent" />
+              </div>
+              <div>
+                <h2 id="cosmos-pay-title" className="font-semibold text-cosmos-text text-lg m-0 leading-tight">
+                  Cosmos Pay
+                </h2>
+                <p className="text-xs text-cosmos-muted m-0">Pago protegido hasta que recibas tu pedido</p>
+              </div>
+            </div>
             <button
               type="button"
-              onClick={handleConnect}
-              disabled={isConnecting}
-              className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 font-medium bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover disabled:opacity-50"
+              onClick={handleClose}
+              disabled={loading}
+              className="p-2 rounded-lg text-cosmos-muted hover:text-cosmos-text hover:bg-cosmos-surface transition-colors disabled:opacity-50"
+              aria-label="Cerrar"
             >
-              {isConnecting ? <Loader2 size={20} className="animate-spin" /> : <Wallet size={20} />}
-              {isConnecting ? "Conectando…" : "Conectar wallet Stellar"}
+              <X size={20} />
             </button>
-          ) : (
-            <p className="text-sm text-cosmos-muted m-0">Wallet conectada. Redirigiendo al pago…</p>
-          )}
-        </div>
-      )}
-      {step === "deploy" && address && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-cosmos-surface-elevated">
-            <span className="text-sm text-cosmos-muted">Tu wallet</span>
-            <span className="text-sm font-mono text-cosmos-text truncate max-w-[200px]">
-              {address.slice(0, 6)}…{address.slice(-4)}
-            </span>
           </div>
-          <p className="text-sm text-cosmos-muted">
-            <strong className="text-cosmos-text">Paso 1 de 2:</strong> Desplegar el contrato de depósito en Stellar. Tu wallet pedirá firmar una transacción.
-          </p>
-          <button
-            type="button"
-            onClick={handleDeploy}
-            disabled={loading}
-            className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 font-medium bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover disabled:opacity-50"
-          >
-            {loading ? <Loader2 size={20} className="animate-spin" /> : <ArrowRight size={20} />}
-            {loading ? "Desplegando…" : "Desplegar depósito y continuar"}
-          </button>
-          <button type="button" onClick={onBack} className="w-full py-2 text-sm text-cosmos-muted hover:text-cosmos-text">
-            Cancelar y volver
-          </button>
-        </div>
-      )}
-      {step === "fund" && (
-        <div className="space-y-4">
-          <p className="text-sm text-cosmos-muted">
-            <strong className="text-cosmos-text">Paso 2 de 2:</strong> Enviar USDC al depósito. Tu wallet pedirá firmar de nuevo; al confirmar se completará el pago.
-          </p>
-          <button
-            type="button"
-            onClick={handleFund}
-            disabled={loading}
-            className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 font-medium bg-cosmos-accent text-cosmos-bg rounded-xl hover:bg-cosmos-accent-hover disabled:opacity-50"
-          >
-            {loading ? <Loader2 size={20} className="animate-spin" /> : null}
-            {loading ? "Enviando…" : "Fondear con USDC"}
-          </button>
-        </div>
-      )}
-      {step === "error" && (
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={onBack}
-            className="flex-1 py-2.5 font-medium border border-cosmos-border rounded-lg text-cosmos-text hover:border-cosmos-accent"
-          >
-            Volver
-          </button>
-          {address && (
-            <button
-              type="button"
-              onClick={() => { setStep("deploy"); setError(null); }}
-              className="flex-1 py-2.5 font-medium bg-cosmos-accent text-cosmos-bg rounded-lg hover:bg-cosmos-accent-hover"
-            >
-              Reintentar
-            </button>
+
+          {/* Stepper: 4 pasos — [celda][línea][celda][línea][celda][línea][celda] para espaciado uniforme */}
+          {step !== "done" && step !== "error" && (
+            <div className="px-4 pt-5 pb-4">
+              <div className="flex items-center">
+                {stepsForStepper.flatMap((s, i) => {
+                  const isActive = currentStepIndex === i;
+                  const stepEl = (
+                    <div key={s.key} className="flex flex-1 flex-col items-center min-w-0">
+                      <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors ${s.done ? "bg-emerald-500/25 text-emerald-400" : isActive ? "bg-cosmos-accent text-white ring-2 ring-cosmos-accent/40" : "bg-cosmos-surface-elevated text-cosmos-muted"}`}>{s.done ? "✓" : i + 1}</div>
+                      <span className={`mt-1.5 block text-center text-[10px] font-medium leading-tight ${s.done ? "text-emerald-400/90" : isActive ? "text-cosmos-text" : "text-cosmos-muted"}`}>{s.label}</span>
+                    </div>
+                  );
+                  return i === 0
+                    ? [stepEl]
+                    : [
+                        <div key={`line-${i}`} className="w-4 shrink-0 flex items-center justify-center" aria-hidden>
+                          <div className={`h-[2px] w-2 rounded-full ${stepsForStepper[i - 1]?.done ? "bg-emerald-500/50" : "bg-cosmos-border"}`} />
+                        </div>,
+                        stepEl,
+                      ];
+                })}
+              </div>
+            </div>
           )}
-        </div>
-      )}
-    </div>
+
+          {/* Content */}
+          <div className="px-6 pb-6 pt-2">
+            {loading && loadingMessage ? (
+              <div className="py-8 flex flex-col items-center justify-center gap-4">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
+                  className="w-14 h-14 rounded-full border-2 border-cosmos-border border-t-cosmos-accent"
+                />
+                <p className="text-sm font-medium text-cosmos-text m-0">{loadingMessage}</p>
+                <p className="text-xs text-cosmos-muted m-0">No cierres ni recargues la página</p>
+              </div>
+            ) : step === "done" ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: "spring", damping: 20 }}
+                className="py-8 flex flex-col items-center justify-center gap-4"
+              >
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", damping: 14, delay: 0.1 }}
+                  className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center"
+                >
+                  <CheckCircle className="w-8 h-8 text-emerald-400" />
+                </motion.div>
+                <div className="text-center">
+                  <p className="font-semibold text-cosmos-text text-lg m-0">¡Listo!</p>
+                  <p className="text-sm text-cosmos-muted mt-1 m-0">Tu pago está confirmado. Te llevamos a tu pedido…</p>
+                </div>
+              </motion.div>
+            ) : (
+              <>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-300"
+                  >
+                    <p className="m-0 leading-relaxed">{error}</p>
+                  </motion.div>
+                )}
+
+                {step === "connect" && (
+                  <motion.div
+                    key="connect"
+                    initial={{ opacity: 0, x: 8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="space-y-4"
+                  >
+                    <p className="text-sm text-cosmos-muted">
+                      Conectá tu billetera para pagar con seguridad. El dinero queda protegido hasta que confirmes que recibiste el pedido.
+                    </p>
+                    {!address ? (
+                      <button
+                        type="button"
+                        onClick={handleConnect}
+                        disabled={isConnecting}
+                        className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-4 font-medium bg-cosmos-accent text-white rounded-xl hover:bg-cosmos-accent-hover disabled:opacity-50 transition-colors"
+                      >
+                        {isConnecting ? <Loader2 size={20} className="animate-spin" /> : <Wallet size={20} />}
+                        {isConnecting ? "Conectando…" : "Conectar billetera"}
+                      </button>
+                    ) : (
+                      <p className="text-sm text-emerald-400/90 m-0">Billetera conectada</p>
+                    )}
+                  </motion.div>
+                )}
+
+                {step === "deploy" && address && (
+                  <motion.div
+                    key="deploy"
+                    initial={{ opacity: 0, x: 8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="space-y-4"
+                  >
+                    <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-cosmos-surface-elevated border border-cosmos-border">
+                      <span className="text-xs text-cosmos-muted">Billetera conectada</span>
+                      <span className="text-sm font-mono text-cosmos-text truncate max-w-[180px]">
+                        {address.slice(0, 6)}…{address.slice(-4)}
+                      </span>
+                    </div>
+                    <p className="text-sm text-cosmos-muted">
+                      Tu billetera te va a pedir que confirmes <strong className="text-cosmos-text">dos veces</strong>: primero para reservar el pago y después para enviar el monto. Es normal y tarda unos segundos.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleDeploy}
+                      disabled={loading}
+                      className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-4 font-medium bg-cosmos-accent text-white rounded-xl hover:bg-cosmos-accent-hover disabled:opacity-50 transition-colors"
+                    >
+                      <ArrowRight size={20} />
+                      Pagar ahora
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleClose}
+                      className="w-full py-2.5 text-sm text-cosmos-muted hover:text-cosmos-text transition-colors"
+                    >
+                      Cancelar y volver
+                    </button>
+                  </motion.div>
+                )}
+
+                {step === "error" && (
+                  <motion.div
+                    key="error"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex gap-3 pt-2"
+                  >
+                    <button
+                      type="button"
+                      onClick={handleClose}
+                      className="flex-1 py-3 font-medium border border-cosmos-border rounded-xl text-cosmos-text hover:border-cosmos-accent transition-colors"
+                    >
+                      Volver
+                    </button>
+                    {address && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStep("deploy");
+                          setError(null);
+                        }}
+                        className="flex-1 py-3 font-medium bg-cosmos-accent text-white rounded-xl hover:bg-cosmos-accent-hover transition-colors"
+                      >
+                        Reintentar
+                      </button>
+                    )}
+                  </motion.div>
+                )}
+              </>
+            )}
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }
